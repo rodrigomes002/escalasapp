@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { MenuItemProps } from "./types/menuItemProps";
 import { Calendar, MenuIcon, Music, Users, X } from "lucide-react";
 import RepertorioPage from "./components/RepertorioPage";
+import PWAUpdater from "./components/PWAUpdater";
 
 const LoginScreen: React.FC<{
   email: string;
@@ -179,13 +180,16 @@ const App: React.FC = () => {
   return isLoggedIn ? (
     <Dashboard activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
   ) : (
-    <LoginScreen
-      email={email}
-      setEmail={setEmail}
-      password={password}
-      setPassword={setPassword}
-      onSubmit={handleLogin}
-    />
+    <>
+      <LoginScreen
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        onSubmit={handleLogin}
+      />
+      <PWAUpdater />
+    </>
   );
 };
 
