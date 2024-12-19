@@ -1,7 +1,8 @@
 // src/components/RepertorioPage.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Musica } from "../types/Musica";
+import { MUSICAS_GET } from "@/services/ApiMusicas";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -112,6 +113,16 @@ const RepertorioPage: React.FC = () => {
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
+
+  useEffect(() => {
+    async function fetchMusicos() {
+      const { url, options } = MUSICAS_GET();
+      const { json } = await fetch(url, options);
+      console.log(json);
+    }
+
+    fetchMusicos();
+  }, []);
 
   return (
     <div className="p-6">

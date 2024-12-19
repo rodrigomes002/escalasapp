@@ -4,6 +4,7 @@ import { Calendar, Music, Users, Menu as MenuIcon, X } from "lucide-react";
 import RepertorioPage from "./RepertorioPage";
 import MenuItem from "@/components/MenuItem";
 import { MenuOption } from "@/types/MenuOption";
+import MembrosPage from "./MembrosPage";
 
 const DashboardPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -85,6 +86,8 @@ const DashboardPage: React.FC = () => {
 
           {activeMenu === "repertorio" ? (
             <RepertorioPage />
+          ) : activeMenu === "membros" ? (
+            <MembrosPage />
           ) : (
             <p className="pl-8 md:pl-0">Conteúdo da página {activeMenu}</p>
           )}
