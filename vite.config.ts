@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       injectRegister: false,
 
       pwaAssets: {
@@ -17,8 +17,8 @@ export default defineConfig({
       },
 
       manifest: {
-        name: "escalasapp",
-        short_name: "escalasapp",
+        name: "Escalas",
+        short_name: "Escalas",
         description: "Escalas para ministerios de louvor",
         theme_color: "#ffffff",
       },
