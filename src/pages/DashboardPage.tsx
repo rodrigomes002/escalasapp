@@ -5,6 +5,7 @@ import RepertorioPage from "./RepertorioPage";
 import MenuItem from "@/components/MenuItem";
 import { MenuOption } from "@/types/MenuOption";
 import MembrosPage from "./MembrosPage";
+import EscalasPage from "./EscalasPage2";
 
 const DashboardPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -88,8 +89,10 @@ const DashboardPage: React.FC = () => {
             <RepertorioPage />
           ) : activeMenu === "membros" ? (
             <MembrosPage />
+          ) : activeMenu === "escalas" ? (
+            <EscalasPage />
           ) : (
-            <p className="pl-8 md:pl-0">Conteúdo da página {activeMenu}</p>
+            <p></p>
           )}
         </div>
       </div>

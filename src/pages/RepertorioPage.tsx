@@ -1,189 +1,358 @@
-// src/components/RepertorioPage.tsx
-import React, { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Musica } from "../types/Musica";
-import { MUSICAS_GET } from "@/services/ApiMusicas";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Loader2,
+  Music,
+  Music2,
+  Pencil,
+  Plus,
+  Search,
+  Trash,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  MUSICAS_DELETE,
+  MUSICAS_GET,
+  MUSICAS_POST,
+  MUSICAS_PUT,
+} from "@/services/ApiMusicas";
+import { Label } from "@/components/ui/label";
+import { Musica } from "@/types/Musica";
 
-const ITEMS_PER_PAGE = 6;
-
-const musicas: Musica[] = [
-  {
-    id: 1,
-    titulo: "Quão Grande é o Meu Deus",
-    artista: "Soraya Moraes",
-    tom: "G",
-    bpm: 75,
-    categoria: "Adoração",
-  },
-  {
-    id: 2,
-    titulo: "Deus é Deus",
-    artista: "Delino Marçal",
-    tom: "C",
-    bpm: 72,
-    categoria: "Adoração",
-  },
-  {
-    id: 3,
-    titulo: "Lugar Secreto",
-    artista: "Gabriela Rocha",
-    tom: "E",
-    bpm: 70,
-    categoria: "Adoração",
-  },
-  {
-    id: 4,
-    titulo: "Tua Graça Me Basta",
-    artista: "Davi Sacer",
-    tom: "D",
-    bpm: 80,
-    categoria: "Adoração",
-  },
-  {
-    id: 5,
-    titulo: "Galileu",
-    artista: "Fernandinho",
-    tom: "Am",
-    bpm: 85,
-    categoria: "Adoração",
-  },
-  {
-    id: 6,
-    titulo: "Nada Além do Sangue",
-    artista: "Fernandinho",
-    tom: "Em",
-    bpm: 70,
-    categoria: "Adoração",
-  },
-  {
-    id: 7,
-    titulo: "Vim Para Adorar-te",
-    artista: "Diante do Trono",
-    tom: "D",
-    bpm: 68,
-    categoria: "Adoração",
-  },
-  {
-    id: 8,
-    titulo: "Oceans",
-    artista: "Hillsong",
-    tom: "D",
-    bpm: 65,
-    categoria: "Adoração",
-  },
-  {
-    id: 9,
-    titulo: "Santo Espírito",
-    artista: "Laura Souguellis",
-    tom: "G",
-    bpm: 72,
-    categoria: "Adoração",
-  },
-  {
-    id: 10,
-    titulo: "Ainda Que a Figueira",
-    artista: "Grupo Logos",
-    tom: "Em",
-    bpm: 78,
-    categoria: "Adoração",
-  },
-];
-
-const RepertorioPage: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+const RepertorioPage = () => {
+  const [musicas, setMusicas] = useState<Musica[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [errorForm, setErrorForm] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isUpdate, setIsUpate] = useState(false);
+  const [formData, setFormData] = useState<Musica>({
+    id: 0,
+    nome: "",
+    cantor: "",
+    //categoria: "",
+    tom: "",
+  });
 
-  const filteredMusicas = musicas.filter(
-    (musica) =>
-      musica.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      musica.artista.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const openDialog = () => setIsOpen(true);
+  const closeDialog = () => setIsOpen(false);
 
-  const totalPages = Math.ceil(filteredMusicas.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedMusicas = filteredMusicas.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorForm(null);
+    setIsLoading(true);
 
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+    if (
+      !formData.nome ||
+      !formData.cantor ||
+      //!formData.categoria ||
+      !formData.tom
+    ) {
+      setErrorForm("Preencha todos os campos");
+      setIsLoading(false);
+      return;
+    }
+
+    const { url, options } = isUpdate
+      ? MUSICAS_PUT(formData, formData.id.toString())
+      : MUSICAS_POST(formData);
+    const response = await fetch(url, options);
+    if (!response.ok) setErrorForm("Falha enviar dados");
+    fetchMusicas();
+    closeDialog();
+    cleanForm();
   };
 
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const cleanForm = () => {
+    setFormData({
+      id: 0,
+      nome: "",
+      cantor: "",
+      //categoria: "",
+      tom: "",
+    });
+
+    setIsUpate(false);
+    setErrorForm(null);
   };
 
   useEffect(() => {
-    async function fetchMusicos() {
-      const { url, options } = MUSICAS_GET();
-      const { json } = await fetch(url, options);
-      console.log(json);
-    }
-
-    fetchMusicos();
+    fetchMusicas();
   }, []);
 
+  const editMusica = (musica: Musica) => {
+    openDialog();
+
+    const form = {
+      id: musica.id,
+      nome: musica.nome,
+      cantor: musica.cantor,
+      //categoria: musica.categoria,
+      tom: musica.tom,
+    };
+
+    setFormData(form);
+    setIsUpate(true);
+  };
+
+  const deleteMusica = async (id: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { url, options } = MUSICAS_DELETE(id);
+    const response = await fetch(url, options);
+    if (!response.ok) setError("Falha ao atualizar dados");
+    setIsLoading(false);
+    fetchMusicas();
+  };
+
+  const fetchMusicas = async () => {
+    setIsLoading(true);
+    setError(null);
+    const { url, options } = MUSICAS_GET();
+    const response = await fetch(url, options);
+    if (!response.ok) setError("Falha ao buscar dados");
+
+    const result = await response.json();
+
+    const musicasArray: Musica[] = result.map((item: Musica) => ({
+      id: item.id,
+      nome: item.nome,
+      cantor: item.cantor,
+      tom: item.tom,
+    }));
+
+    setMusicas(musicasArray);
+    cleanForm();
+    setIsLoading(false);
+  };
+
+  // Filtra músicas baseado na busca e no filtro de função
+  const filteredMusicas = musicas.filter((musico) => {
+    const matchesSearch = musico.nome
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesCantor = musico.cantor
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesSearch || matchesCantor;
+  });
+
   return (
-    <div className="p-6">
-      {/* Search Bar */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Buscar música ou artista..."
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
+        <div>
+          <p className="text-muted-foreground">
+            Lista de músicas do repertório
+          </p>
+        </div>
+
+        <Button onClick={fetchMusicas} disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            <>
+              <Music2 className="mr-2 h-4 w-4" />
+              Atualizar Lista
+            </>
+          )}
+        </Button>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {paginatedMusicas.map((musica) => (
-          <div
-            key={musica.id}
-            className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">{musica.titulo}</h3>
-            <div className="text-gray-600 space-y-1">
-              <p>Artista: {musica.artista}</p>
-              <p>Tom: {musica.tom}</p>
-              <p>BPM: {musica.bpm}</p>
-              <p>Categoria: {musica.categoria}</p>
-            </div>
-          </div>
-        ))}
+      {/* Filtros */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar músicas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button onClick={openDialog} disabled={isLoading}>
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-center space-x-4">
-        <button
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          className={`flex items-center ${
-            currentPage === 1
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-blue-500 hover:text-blue-700"
-          }`}
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Anterior
-        </button>
-        <span className="text-gray-600">
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className={`flex items-center ${
-            currentPage === totalPages
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-blue-500 hover:text-blue-700"
-          }`}
-        >
-          Próxima
-          <ChevronRight className="w-5 h-5" />
-        </button>
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Musicians Grid */}
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredMusicas.map((musico) => (
+            <Card key={musico.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>{musico.nome}</CardTitle>
+                <CardDescription>{musico.cantor}</CardDescription>
+                <CardDescription>Tom: {musico.tom}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => editMusica(musico)}
+                  disabled={isLoading}
+                  className="mr-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => deleteMusica(musico.id.toString())}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Trash className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && filteredMusicas.length === 0 && (
+        <div className="text-center py-12">
+          <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-semibold">
+            Nenhum música encontrado
+          </h3>
+          <p className="text-muted-foreground">
+            Tente ajustar seus filtros de busca
+          </p>
+        </div>
+      )}
+
+      <div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nova Música</DialogTitle>
+              <DialogDescription>
+                Adicione uma nova música ao repertório
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="nome" className="text-right">
+                    Nome
+                  </Label>
+                  <Input
+                    id="nome"
+                    name="nome"
+                    className="col-span-2"
+                    value={formData.nome}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        nome: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="cantor" className="text-right">
+                    Artista
+                  </Label>
+                  <Input
+                    id="cantor"
+                    name="cantor"
+                    className="col-span-2"
+                    value={formData.cantor}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        cantor: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="tom" className="text-right">
+                    Tom
+                  </Label>
+                  <Input
+                    id="tom"
+                    name="tom"
+                    className="col-span-2"
+                    value={formData.tom}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        tom: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-center">
+                {errorForm && <p className="text-red-500  mb-3">{errorForm}</p>}
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Music className="mr-2 h-4 w-4" />
+                      Salvar
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

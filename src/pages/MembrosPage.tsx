@@ -18,7 +18,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Music2, Plus, Search } from "lucide-react";
+import {
+  Loader2,
+  Music2,
+  Pencil,
+  Plus,
+  Search,
+  Trash,
+  User,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +35,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MUSICOS_GET, MUSICOS_POST } from "@/services/ApiMusicos";
+import {
+  MUSICOS_DELETE,
+  MUSICOS_GET,
+  MUSICOS_POST,
+  MUSICOS_PUT,
+} from "@/services/ApiMusicos";
 import { Label } from "@/components/ui/label";
-import { MusicoFormData } from "@/types/MusicoFormData";
 import { Musico } from "@/types/Musico";
 import { FuncaoEnum } from "@/enums/FuncaoEnum";
 
@@ -37,11 +49,12 @@ const MembrosPage = () => {
   const [musicos, setMusicos] = useState<Musico[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorForm, setErrorForm] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [funcaoFilter, setFuncaoFilter] = useState<string>("all");
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<FuncaoEnum | null>(null);
-  const [formData, setFormData] = useState<MusicoFormData>({
+  const [isUpdate, setIsUpate] = useState(false);
+  const [formData, setFormData] = useState<Musico>({
     id: 0,
     nome: "",
     funcao: null,
@@ -54,43 +67,25 @@ const MembrosPage = () => {
     return FuncaoEnum[funcao];
   };
 
-  const handleSelectChange = (value: string) => {
-    setSelectedValue(value as unknown as FuncaoEnum);
-    formData.funcao = selectedValue;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setError(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    const form = {
-      id: 0,
-      nome: formData.nome,
-      funcao: Number(selectedValue),
-    };
-
-    setFormData(form);
+    setErrorForm(null);
+    setIsLoading(true);
 
     if (!formData.nome || !formData.funcao) {
-      setError("Preencha todos os campos");
+      setErrorForm("Preencha todos os campos");
+      setIsLoading(false);
       return;
     }
 
-    const { url, options } = await MUSICOS_POST(form);
+    const { url, options } = isUpdate
+      ? MUSICOS_PUT(formData, formData.id.toString())
+      : MUSICOS_POST(formData);
     const response = await fetch(url, options);
-    if (!response.ok) setError("Falha enviar dados");
+    if (!response.ok) setErrorForm("Falha enviar dados");
+    fetchMusicos();
     closeDialog();
     cleanForm();
-    fetchMusicos();
   };
 
   const cleanForm = () => {
@@ -99,16 +94,43 @@ const MembrosPage = () => {
       nome: "",
       funcao: null,
     });
+
+    setIsUpate(false);
+    setErrorForm(null);
   };
 
   useEffect(() => {
     fetchMusicos();
   }, []);
 
+  const editMusico = (musico: Musico) => {
+    openDialog();
+
+    const form = {
+      id: musico.id,
+      nome: musico.nome,
+      funcao: Number(musico.funcao),
+    };
+
+    setFormData(form);
+    setIsUpate(true);
+  };
+
+  const deleteMusico = async (id: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { url, options } = MUSICOS_DELETE(id);
+    const response = await fetch(url, options);
+    if (!response.ok) setError("Falha ao atualizar dados");
+    setIsLoading(false);
+    fetchMusicos();
+  };
+
   const fetchMusicos = async () => {
     setIsLoading(true);
     setError(null);
-    const { url, options } = await MUSICOS_GET();
+    const { url, options } = MUSICOS_GET();
     const response = await fetch(url, options);
     if (!response.ok) setError("Falha ao buscar dados");
 
@@ -131,7 +153,7 @@ const MembrosPage = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesRole =
-      funcaoFilter === "all" || funcaoFilter === musico.funcao.toString();
+      funcaoFilter === "all" || funcaoFilter === musico.funcao?.toString();
     return matchesSearch && matchesRole;
   });
 
@@ -212,11 +234,39 @@ const MembrosPage = () => {
               <CardHeader>
                 <CardTitle>{musico.nome}</CardTitle>
                 <CardDescription>
-                  {getFuncaoNome(musico.funcao)}
+                  {getFuncaoNome(musico.funcao as FuncaoEnum)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">ID: {musico.id}</p>
+                <Button
+                  onClick={() => editMusico(musico)}
+                  disabled={isLoading}
+                  className="mr-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => deleteMusico(musico.id.toString())}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <Trash className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -257,7 +307,12 @@ const MembrosPage = () => {
                     name="nome"
                     className="col-span-2"
                     value={formData.nome}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        nome: e.target.value,
+                      });
+                    }}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -267,9 +322,14 @@ const MembrosPage = () => {
                   <Select
                     name="funcao"
                     value={formData.funcao?.toString()}
-                    onValueChange={handleSelectChange}
+                    onValueChange={(valor) =>
+                      setFormData({
+                        ...formData,
+                        funcao: Number(valor),
+                      })
+                    }
                   >
-                    <SelectTrigger className="w-full sm:w-[223px]">
+                    <SelectTrigger className="col-span-2">
                       <SelectValue placeholder="Selecione a função" />
                     </SelectTrigger>
                     <SelectContent>
@@ -287,8 +347,22 @@ const MembrosPage = () => {
                   </Select>
                 </div>
               </div>
+              <div className="flex justify-center">
+                {errorForm && <p className="text-red-500  mb-3">{errorForm}</p>}
+              </div>
               <DialogFooter>
-                <Button type="submit">Salvar</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    </>
+                  ) : (
+                    <>
+                      <User className="mr-2 h-4 w-4" />
+                      Salvar
+                    </>
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

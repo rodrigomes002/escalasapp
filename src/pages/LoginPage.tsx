@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import {
   Card,
@@ -60,12 +59,6 @@ const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive" className="text-sm">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="username">Usuário</Label>
               <Input
@@ -93,6 +86,11 @@ const LoginPage: React.FC = () => {
                   onChange={handleInputChange}
                   className="h-12 pr-10"
                 />
+
+                <div className="flex justify-center">
+                  {error && <p className="text-red-500 mt-3">{error}</p>}
+                </div>
+
                 <Button
                   type="button"
                   variant="ghost"
@@ -108,16 +106,6 @@ const LoginPage: React.FC = () => {
                 </Button>
               </div>
             </div>
-
-            <div className="flex items-center justify-end">
-              <Button
-                variant="link"
-                className="px-0 font-normal text-sm"
-                type="button"
-              >
-                Esqueceu sua senha?
-              </Button>
-            </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
@@ -131,13 +119,6 @@ const LoginPage: React.FC = () => {
                 "Entrar"
               )}
             </Button>
-
-            <div className="text-sm text-center text-muted-foreground">
-              Não tem uma conta?
-              <Button variant="link" className="p-0 h-auto font-normal">
-                Criar conta
-              </Button>
-            </div>
           </CardFooter>
         </form>
       </Card>
