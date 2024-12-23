@@ -1,5 +1,4 @@
-export const API_URL: string =
-  "http://ec2-3-80-208-160.compute-1.amazonaws.com:5001/";
+export const API_URL: string = "https://escalasapp.com.br:5001/";
 
 interface RequestOptions {
   method: string;
