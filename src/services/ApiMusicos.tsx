@@ -1,7 +1,7 @@
 import { API_URL, GET, POST, PUT, DELETE } from "./ApiBase.js";
 import { Musico } from "@/types/Musico.js";
 
-const url = `${API_URL}api/musicos`;
+const url = `${API_URL}/musicos`;
 const token = window.localStorage.getItem("authToken");
 
 export function MUSICOS_GET() {

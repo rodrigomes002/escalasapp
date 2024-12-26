@@ -1,7 +1,7 @@
 import { API_URL, GET, POST, PUT, DELETE } from "./ApiBase";
 import { Musica } from "@/types/Musica";
 
-const url = `${API_URL}api/musicas`;
+const url = `${API_URL}/musicas`;
 const token = window.localStorage.getItem("authToken");
 
 export function MUSICAS_GET() {

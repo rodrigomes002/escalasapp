@@ -1,4 +1,4 @@
-export const API_URL: string = "https://escalasapp.com.br:5001/";
+export const API_URL: string = "https://escalasapp.com.br/api";
 
 interface RequestOptions {
   method: string;
