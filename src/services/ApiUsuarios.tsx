@@ -16,3 +16,13 @@ export function LOGIN_USUARIO(body: LoginFormData) {
     body,
   };
 }
+
+export function VALIDATE_TOKEN(body: string) {
+  return {
+    url: `${url}/validate`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body,
+  };
+}

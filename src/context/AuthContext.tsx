@@ -1,9 +1,13 @@
-import { CREATE_USUARIO, LOGIN_USUARIO } from "@/services/ApiUsuarios";
+import {
+  CREATE_USUARIO,
+  LOGIN_USUARIO,
+  VALIDATE_TOKEN,
+} from "@/services/ApiUsuarios";
 import { AuthContextType } from "@/types/AuthContextType";
 import { AuthProviderProps } from "@/types/AuthProviderProps";
 import { User } from "@/types/User";
 import axios from "axios";
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -12,6 +16,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -30,8 +35,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const userData = await response.data;
       setUser(userData);
+      setIsAuthenticated(true);
 
-      // Store token in localStorage
       localStorage.setItem("authToken", userData.token);
 
       navigate("/");
@@ -49,6 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       setUser(null);
+      setIsAuthenticated(false);
       localStorage.removeItem("authToken");
       navigate("/login");
     } catch (err) {
@@ -64,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const { url, body } = await CREATE_USUARIO({ username, password });
+      const { url, body } = CREATE_USUARIO({ username, password });
       const response = await axios.post(url, body);
 
       if (!response) {
@@ -84,9 +90,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    const ValidateLogin = async () => {
+      const token = localStorage.getItem("authToken");
+
+      if (!token) return false;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const { url, body, headers } = VALIDATE_TOKEN(token);
+        const response = await axios.post(url, body, { headers: headers });
+
+        const isValid = await response.data;
+
+        if (!isValid) {
+          logout();
+          return;
+        }
+
+        navigate("/");
+        setIsAuthenticated(true);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred during validate"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    ValidateLogin();
+  }, []);
+
   const value = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated,
     isLoading,
     login,
     logout,
