@@ -128,7 +128,7 @@ const EscalasPage = () => {
       cleanForm();
       setIsLoading(false);
     } catch (error) {
-      setError("Erro genérico");
+      setError(error instanceof Error ? error.message : "An error occurred");
     }
   };
 
