@@ -1,21 +1,43 @@
 import { Escala } from "@/types/Escala.js";
-import { API_URL, GET, POST, PUT, DELETE } from "./ApiBase.js";
+import { API_URL } from "./ApiBase.js";
 
 const url = `${API_URL}/escalas`;
 const token = window.localStorage.getItem("authToken");
 
-export function ESCALAS_GET() {
-  return GET(url, token);
+export function GET_ESCALAS() {
+  return {
+    url,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 }
 
-export function ESCALAS_POST(body: Escala) {
-  return POST(url, token, JSON.stringify(body));
+export function POST_ESCALA(body: Escala) {
+  return {
+    url,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  };
 }
 
-export function ESCALAS_DELETE(id: string) {
-  return DELETE(url, token, id);
+export function DELETE_ESCALA(id: string) {
+  return {
+    url: `${url}/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 }
 
-export function ESCALAS_PUT(body: Escala, id: string) {
-  return PUT(url, token, JSON.stringify(body), id);
+export function PUT_ESCALA(body: Escala, id: string) {
+  return {
+    url: `${url}/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  };
 }

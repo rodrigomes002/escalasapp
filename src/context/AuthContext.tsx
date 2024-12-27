@@ -1,8 +1,9 @@
+import { CREATE_USUARIO, LOGIN_USUARIO } from "@/services/ApiUsuarios";
 import { AuthContextType } from "@/types/AuthContextType";
 import { AuthProviderProps } from "@/types/AuthProviderProps";
 import { User } from "@/types/User";
+import axios from "axios";
 import React, { createContext, useState } from "react";
-import { CREATE_POST, LOGIN_POST } from "../services/ApiUsuarios";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -20,14 +21,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const { url, options } = await LOGIN_POST({ username, password });
-      const response = await fetch(url, options);
+      const { url, body } = LOGIN_USUARIO({ username, password });
+      const response = await axios.post(url, body);
 
-      if (!response.ok) {
+      if (!response) {
         throw new Error("Login failed");
       }
 
-      const userData = await response.json();
+      const userData = await response.data;
       setUser(userData);
 
       // Store token in localStorage
@@ -63,18 +64,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      // Simulate API call
-      const { url, options } = await CREATE_POST({ username, password });
-      const response = await fetch(url, options);
+      const { url, body } = await CREATE_USUARIO({ username, password });
+      const response = await axios.post(url, body);
 
-      if (!response.ok) {
+      if (!response) {
         throw new Error("Signup failed");
       }
 
-      const userData = await response.json();
+      const userData = await response.data;
       setUser(userData);
 
-      // Store token in localStorage
       localStorage.setItem("authToken", userData.token);
     } catch (err) {
       setError(

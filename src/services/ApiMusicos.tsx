@@ -1,21 +1,43 @@
-import { API_URL, GET, POST, PUT, DELETE } from "./ApiBase.js";
+import { API_URL } from "./ApiBase.js";
 import { Musico } from "@/types/Musico.js";
 
 const url = `${API_URL}/musicos`;
 const token = window.localStorage.getItem("authToken");
 
-export function MUSICOS_GET() {
-  return GET(url, token);
+export function GET_MUSICOS() {
+  return {
+    url,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 }
 
-export function MUSICOS_POST(body: Musico) {
-  return POST(url, token, JSON.stringify(body));
+export function POST_MUSICO(body: Musico) {
+  return {
+    url,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  };
 }
 
-export function MUSICOS_DELETE(id: string) {
-  return DELETE(url, token, id);
+export function DELETE_MUSICO(id: string) {
+  return {
+    url: `${url}/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 }
 
-export function MUSICOS_PUT(body: Musico, id: string) {
-  return PUT(url, token, JSON.stringify(body), id);
+export function PUT_MUSICO(body: Musico, id: string) {
+  return {
+    url: `${url}/${id}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  };
 }

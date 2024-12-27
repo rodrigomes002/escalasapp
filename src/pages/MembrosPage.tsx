@@ -35,15 +35,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  MUSICOS_DELETE,
-  MUSICOS_GET,
-  MUSICOS_POST,
-  MUSICOS_PUT,
-} from "@/services/ApiMusicos";
 import { Label } from "@/components/ui/label";
 import { Musico } from "@/types/Musico";
 import { FuncaoEnum } from "@/enums/FuncaoEnum";
+import {
+  DELETE_MUSICO,
+  GET_MUSICOS,
+  POST_MUSICO,
+  PUT_MUSICO,
+} from "@/services/ApiMusicos";
+import axios from "axios";
 
 const MembrosPage = () => {
   const [musicos, setMusicos] = useState<Musico[]>([]);
@@ -78,14 +79,26 @@ const MembrosPage = () => {
       return;
     }
 
-    const { url, options } = isUpdate
-      ? MUSICOS_PUT(formData, formData.id.toString())
-      : MUSICOS_POST(formData);
-    const response = await fetch(url, options);
-    if (!response.ok) setErrorForm("Falha enviar dados");
-    fetchMusicos();
-    closeDialog();
-    cleanForm();
+    if (isUpdate) {
+      const { url, headers, body } = PUT_MUSICO(
+        formData,
+        formData.id.toString()
+      );
+
+      const response = await axios.put(url, body, { headers: headers });
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchMusicos();
+      closeDialog();
+      cleanForm();
+    } else {
+      const { url, headers, body } = POST_MUSICO(formData);
+      const response = await axios.post(url, body, { headers: headers });
+
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchMusicos();
+      closeDialog();
+      cleanForm();
+    }
   };
 
   const cleanForm = () => {
@@ -120,9 +133,9 @@ const MembrosPage = () => {
     setIsLoading(true);
     setError(null);
 
-    const { url, options } = MUSICOS_DELETE(id);
-    const response = await fetch(url, options);
-    if (!response.ok) setError("Falha ao atualizar dados");
+    const { url, headers } = DELETE_MUSICO(id);
+    const response = await axios.delete(url, { headers: headers });
+    if (!response) setError("Falha ao atualizar dados");
     setIsLoading(false);
     fetchMusicos();
   };
@@ -130,11 +143,11 @@ const MembrosPage = () => {
   const fetchMusicos = async () => {
     setIsLoading(true);
     setError(null);
-    const { url, options } = MUSICOS_GET();
-    const response = await fetch(url, options);
-    if (!response.ok) setError("Falha ao buscar dados");
+    const { url, headers } = GET_MUSICOS();
+    const response = await axios.get(url, { headers: headers });
+    if (!response) setError("Falha ao buscar dados");
 
-    const result = await response.json();
+    const result = await response.data;
 
     const musicosArray: Musico[] = result.map((item: Musico) => ({
       id: item.id,
@@ -165,20 +178,6 @@ const MembrosPage = () => {
             Lista de músicos e suas funções
           </p>
         </div>
-
-        <Button onClick={fetchMusicos} disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando...
-            </>
-          ) : (
-            <>
-              <Music2 className="mr-2 h-4 w-4" />
-              Atualizar Lista
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Filtros */}

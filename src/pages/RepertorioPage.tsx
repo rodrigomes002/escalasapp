@@ -26,14 +26,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  MUSICAS_DELETE,
-  MUSICAS_GET,
-  MUSICAS_POST,
-  MUSICAS_PUT,
-} from "@/services/ApiMusicas";
 import { Label } from "@/components/ui/label";
 import { Musica } from "@/types/Musica";
+import {
+  DELETE_MUSICA,
+  GET_MUSICAS,
+  POST_MUSICA,
+  PUT_MUSICA,
+} from "@/services/ApiMusicas";
+import axios from "axios";
 
 const RepertorioPage = () => {
   const [musicas, setMusicas] = useState<Musica[]>([]);
@@ -70,14 +71,26 @@ const RepertorioPage = () => {
       return;
     }
 
-    const { url, options } = isUpdate
-      ? MUSICAS_PUT(formData, formData.id.toString())
-      : MUSICAS_POST(formData);
-    const response = await fetch(url, options);
-    if (!response.ok) setErrorForm("Falha enviar dados");
-    fetchMusicas();
-    closeDialog();
-    cleanForm();
+    if (isUpdate) {
+      const { url, headers, body } = PUT_MUSICA(
+        formData,
+        formData.id.toString()
+      );
+
+      const response = await axios.put(url, body, { headers: headers });
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchMusicas();
+      closeDialog();
+      cleanForm();
+    } else {
+      const { url, headers, body } = POST_MUSICA(formData);
+      const response = await axios.post(url, body, { headers: headers });
+
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchMusicas();
+      closeDialog();
+      cleanForm();
+    }
   };
 
   const cleanForm = () => {
@@ -116,9 +129,9 @@ const RepertorioPage = () => {
     setIsLoading(true);
     setError(null);
 
-    const { url, options } = MUSICAS_DELETE(id);
-    const response = await fetch(url, options);
-    if (!response.ok) setError("Falha ao atualizar dados");
+    const { url, headers } = DELETE_MUSICA(id);
+    const response = await axios.delete(url, { headers: headers });
+    if (!response) setError("Falha ao atualizar dados");
     setIsLoading(false);
     fetchMusicas();
   };
@@ -126,11 +139,11 @@ const RepertorioPage = () => {
   const fetchMusicas = async () => {
     setIsLoading(true);
     setError(null);
-    const { url, options } = MUSICAS_GET();
-    const response = await fetch(url, options);
-    if (!response.ok) setError("Falha ao buscar dados");
+    const { url, headers } = GET_MUSICAS();
+    const response = await axios.get(url, { headers: headers });
+    if (!response) setError("Falha ao buscar dados");
 
-    const result = await response.json();
+    const result = await response.data;
 
     const musicasArray: Musica[] = result.map((item: Musica) => ({
       id: item.id,
@@ -164,20 +177,6 @@ const RepertorioPage = () => {
             Lista de músicas do repertório
           </p>
         </div>
-
-        <Button onClick={fetchMusicas} disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando...
-            </>
-          ) : (
-            <>
-              <Music2 className="mr-2 h-4 w-4" />
-              Atualizar Lista
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Filtros */}

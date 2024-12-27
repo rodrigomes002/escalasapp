@@ -22,7 +22,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ESCALAS_GET, ESCALAS_POST, ESCALAS_PUT } from "@/services/ApiEscalas";
+import { GET_ESCALAS, POST_ESCALA, PUT_ESCALA } from "@/services/ApiEscalas";
+import axios from "axios";
 
 const EscalasPage = () => {
   const [escalas, setEscalas] = useState<Escala[]>([]);
@@ -60,14 +61,26 @@ const EscalasPage = () => {
       return;
     }
 
-    const { url, options } = isUpdate
-      ? ESCALAS_PUT(formData, formData.id.toString())
-      : ESCALAS_POST(formData);
-    const response = await fetch(url, options);
-    if (!response.ok) setErrorForm("Falha enviar dados");
-    fetchEscalas();
-    closeDialog();
-    cleanForm();
+    if (isUpdate) {
+      const { url, headers, body } = PUT_ESCALA(
+        formData,
+        formData.id.toString()
+      );
+
+      const response = await axios.put(url, body, { headers: headers });
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchEscalas();
+      closeDialog();
+      cleanForm();
+    } else {
+      const { url, headers, body } = POST_ESCALA(formData);
+      const response = await axios.post(url, body, { headers: headers });
+
+      if (!response) setErrorForm("Falha enviar dados");
+      fetchEscalas();
+      closeDialog();
+      cleanForm();
+    }
   };
 
   const cleanForm = () => {
@@ -87,6 +100,37 @@ const EscalasPage = () => {
   useEffect(() => {
     fetchEscalas();
   }, []);
+
+  const fetchEscalas = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_ESCALAS();
+
+      const response = await axios.get(url, {
+        headers: headers,
+      });
+
+      if (!response) setError("Falha ao buscar dados");
+
+      const result = await response.data;
+
+      const escalasArray: Escala[] = result.map((item: Escala) => ({
+        id: item.id,
+        data: item.data,
+        instrumental: item.instrumental,
+        vocal: item.vocal,
+        musicasManha: item.musicasManha,
+        musicasNoite: item.musicasNoite,
+      }));
+
+      setEscalas(escalasArray);
+      cleanForm();
+      setIsLoading(false);
+    } catch (error) {
+      setError("Erro genérico");
+    }
+  };
 
   //   const editEscala = (escala: Escala) => {
   //     openDialog();
@@ -114,29 +158,6 @@ const EscalasPage = () => {
   //     fetchEscalas();
   //   };
 
-  const fetchEscalas = async () => {
-    setIsLoading(true);
-    setError(null);
-    const { url, options } = ESCALAS_GET();
-    const response = await fetch(url, options);
-    if (!response.ok) setError("Falha ao buscar dados");
-
-    const result = await response.json();
-
-    const escalasArray: Escala[] = result.map((item: Escala) => ({
-      id: item.id,
-      data: item.data,
-      instrumental: item.instrumental,
-      vocal: item.vocal,
-      musicasManha: item.musicasManha,
-      musicasNoite: item.musicasNoite,
-    }));
-
-    setEscalas(escalasArray);
-    cleanForm();
-    setIsLoading(false);
-  };
-
   // Filtra músicas baseado na busca e no filtro de função
   const filteredEscalas = escalas.filter((musico) => {
     if (!date) return escalas;
@@ -160,20 +181,6 @@ const EscalasPage = () => {
         <div>
           <p className="text-muted-foreground">Lista de escalas agendadas</p>
         </div>
-
-        <Button onClick={fetchEscalas} disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando...
-            </>
-          ) : (
-            <>
-              <Music2 className="mr-2 h-4 w-4" />
-              Atualizar Lista
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Filtros */}
