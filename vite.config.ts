@@ -24,9 +24,12 @@ export default defineConfig({
       },
 
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
+        runtimeCaching: [
+          {
+            urlPattern: /./, // Padrão que intercepta todas as requisições
+            handler: "NetworkOnly", // Não usa cache, sempre busca pela rede
+          },
+        ],
       },
 
       devOptions: {
