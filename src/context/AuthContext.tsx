@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    const ValidateLogin = async () => {
+    const AutoLogin = async () => {
       const token = localStorage.getItem("authToken");
 
       if (!token) return false;
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    ValidateLogin();
+    AutoLogin();
   }, []);
 
   const value = {
