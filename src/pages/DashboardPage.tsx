@@ -1,15 +1,24 @@
 // src/components/Dashboard.tsx
 import React, { useState } from "react";
-import { Calendar, Music, Users, Menu as MenuIcon, X } from "lucide-react";
+import {
+  Calendar,
+  Music,
+  Users,
+  Menu as MenuIcon,
+  X,
+  LogOut,
+} from "lucide-react";
 import RepertorioPage from "./RepertorioPage";
 import MenuItem from "@/components/MenuItem";
 import { MenuOption } from "@/types/MenuOption";
 import MembrosPage from "./MembrosPage";
 import EscalasPage from "./EscalasPage";
+import { useAuth } from "@/hooks/useAuth";
 
 const DashboardPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("escalas");
+  const { logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -23,6 +32,10 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleDeslogar = () => {
+    logout();
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 relative">
       {/* Overlay para telas menores */}
@@ -33,10 +46,10 @@ const DashboardPage: React.FC = () => {
         />
       )}
 
-      {/* Botão Hamburguer */}
+      {/* Botão Deslogar */}
       <button
         onClick={toggleMenu}
-        className="md:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-white shadow-lg"
+        className="md:hidden fixed top-4 right-4 z-30 p-2 rounded-lg bg-white shadow-lg"
       >
         {isMenuOpen ? (
           <X className="h-6 w-6" />
@@ -73,6 +86,13 @@ const DashboardPage: React.FC = () => {
               text="Membros"
               isActive={activeMenu === "membros"}
               onClick={() => handleMenuClick("membros")}
+            />
+
+            <MenuItem
+              icon={LogOut}
+              text="Sair"
+              isActive={false}
+              onClick={() => handleDeslogar()}
             />
           </nav>
         </div>
