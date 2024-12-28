@@ -24,6 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
+    localStorage.removeItem("authToken");
 
     const { url, body } = LOGIN_USUARIO({ username, password });
     axios
@@ -86,8 +87,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const AutoLogin = () => {
-      debugger;
-
       setIsLoading(true);
       setError(null);
 
