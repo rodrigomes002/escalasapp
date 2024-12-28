@@ -111,7 +111,7 @@ const RepertorioPage = () => {
           cleanForm();
         })
         .catch((error: Error) => {
-          setError(error.message);
+          setErrorForm(error.message);
         });
     } else {
       const { url, headers, body } = POST_MUSICA(formData);
@@ -123,7 +123,7 @@ const RepertorioPage = () => {
           cleanForm();
         })
         .catch((error: Error) => {
-          setError(error.message);
+          setErrorForm(error.message);
         });
     }
   };
