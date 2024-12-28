@@ -52,10 +52,37 @@ const RepertorioPage = () => {
     tom: "",
   });
 
-  const openDialog = () => setIsOpen(true);
-  const closeDialog = () => setIsOpen(false);
+  useEffect(() => {
+    const fetchMusicas = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_MUSICAS();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+      axios
+        .get(url, { headers: headers })
+        .then((response) => {
+          const result = response.data;
+
+          const musicasArray: Musica[] = result.map((item: Musica) => ({
+            id: item.id,
+            nome: item.nome,
+            cantor: item.cantor,
+            tom: item.tom,
+          }));
+
+          setMusicas(musicasArray);
+          cleanForm();
+          setIsLoading(false);
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
+    };
+
+    fetchMusicas();
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorForm(null);
     setIsLoading(true);
@@ -77,38 +104,29 @@ const RepertorioPage = () => {
         formData.id.toString()
       );
 
-      const response = await axios.put(url, body, { headers: headers });
-      if (!response) setErrorForm("Falha enviar dados");
-      fetchMusicas();
-      closeDialog();
-      cleanForm();
+      axios
+        .put(url, body, { headers: headers })
+        .then(() => {
+          closeDialog();
+          cleanForm();
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
     } else {
       const { url, headers, body } = POST_MUSICA(formData);
-      const response = await axios.post(url, body, { headers: headers });
 
-      if (!response) setErrorForm("Falha enviar dados");
-      fetchMusicas();
-      closeDialog();
-      cleanForm();
+      axios
+        .post(url, body, { headers: headers })
+        .then(() => {
+          closeDialog();
+          cleanForm();
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
     }
   };
-
-  const cleanForm = () => {
-    setFormData({
-      id: 0,
-      nome: "",
-      cantor: "",
-      //categoria: "",
-      tom: "",
-    });
-
-    setIsUpate(false);
-    setErrorForm(null);
-  };
-
-  useEffect(() => {
-    fetchMusicas();
-  }, []);
 
   const editMusica = (musica: Musica) => {
     openDialog();
@@ -130,32 +148,31 @@ const RepertorioPage = () => {
     setError(null);
 
     const { url, headers } = DELETE_MUSICA(id);
-    const response = await axios.delete(url, { headers: headers });
-    if (!response) setError("Falha ao atualizar dados");
-    setIsLoading(false);
-    fetchMusicas();
-  };
+    axios
+      .delete(url, { headers: headers })
+      .then(() => {})
+      .catch((error: Error) => {
+        setError(error.message);
+      });
 
-  const fetchMusicas = async () => {
-    setIsLoading(true);
-    setError(null);
-    const { url, headers } = GET_MUSICAS();
-    const response = await axios.get(url, { headers: headers });
-    if (!response) setError("Falha ao buscar dados");
-
-    const result = await response.data;
-
-    const musicasArray: Musica[] = result.map((item: Musica) => ({
-      id: item.id,
-      nome: item.nome,
-      cantor: item.cantor,
-      tom: item.tom,
-    }));
-
-    setMusicas(musicasArray);
-    cleanForm();
     setIsLoading(false);
   };
+
+  const cleanForm = () => {
+    setFormData({
+      id: 0,
+      nome: "",
+      cantor: "",
+      //categoria: "",
+      tom: "",
+    });
+
+    setIsUpate(false);
+    setErrorForm(null);
+  };
+
+  const openDialog = () => setIsOpen(true);
+  const closeDialog = () => setIsOpen(false);
 
   // Filtra músicas baseado na busca e no filtro de função
   const filteredMusicas = musicas.filter((musico) => {

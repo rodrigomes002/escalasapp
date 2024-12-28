@@ -9,6 +9,7 @@ export function GET_ESCALAS() {
     url,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   };
 }
@@ -18,6 +19,7 @@ export function POST_ESCALA(body: Escala) {
     url,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body,
   };
@@ -28,6 +30,7 @@ export function DELETE_ESCALA(id: string) {
     url: `${url}/${id}`,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   };
 }
@@ -37,6 +40,7 @@ export function PUT_ESCALA(body: Escala, id: string) {
     url: `${url}/${id}`,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body,
   };

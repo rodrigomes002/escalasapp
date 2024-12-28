@@ -21,35 +21,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const login = async (username: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const login = (username: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
 
-      const { url, body } = LOGIN_USUARIO({ username, password });
-      const response = await axios.post(url, body);
+    const { url, body } = LOGIN_USUARIO({ username, password });
+    axios
+      .post(url, body)
+      .then((response) => {
+        const userData = response.data;
+        setUser(userData);
+        setIsAuthenticated(true);
 
-      if (!response) {
-        throw new Error("Login failed");
-      }
+        localStorage.setItem("authToken", userData.token);
 
-      const userData = await response.data;
-      setUser(userData);
-      setIsAuthenticated(true);
-
-      localStorage.setItem("authToken", userData.token);
-
-      navigate("/");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An error occurred during login"
-      );
-    } finally {
-      setIsLoading(false);
-    }
+        navigate("/");
+      })
+      .catch((error) => {
+        setError(error.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
-  const logout = async () => {
+  const logout = () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -65,62 +61,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signup = async (username: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const signup = (username: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
 
-      const { url, body } = CREATE_USUARIO({ username, password });
-      const response = await axios.post(url, body);
+    const { url, body } = CREATE_USUARIO({ username, password });
+    axios
+      .post(url, body)
+      .then((response) => {
+        const userData = response.data;
+        setUser(userData);
 
-      if (!response) {
-        throw new Error("Signup failed");
-      }
+        localStorage.setItem("authToken", userData.token);
 
-      const userData = await response.data;
-      setUser(userData);
-
-      localStorage.setItem("authToken", userData.token);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An error occurred during signup"
-      );
-    } finally {
-      setIsLoading(false);
-    }
+        navigate("/");
+      })
+      .catch((error) => {
+        setError(error.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
-    const AutoLogin = async () => {
+    const AutoLogin = () => {
+      debugger;
+
+      setIsLoading(true);
+      setError(null);
+
       const token = localStorage.getItem("authToken");
 
-      if (!token) return false;
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const { url, body, headers } = VALIDATE_TOKEN(token);
-        const response = await axios.post(url, body, { headers: headers });
-
-        const isValid = await response.data;
-
-        if (!isValid) {
-          logout();
-          return;
-        }
-
-        navigate("/");
-        setIsAuthenticated(true);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "An error occurred during validate"
-        );
-      } finally {
-        setIsLoading(false);
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
       }
+
+      const { url, body, headers } = VALIDATE_TOKEN(token);
+      axios
+        .post(url, body, { headers: headers })
+        .then((response) => {
+          const isValid = response.data;
+
+          if (!isValid) {
+            logout();
+            return;
+          }
+
+          navigate("/");
+          setIsAuthenticated(true);
+        })
+        .catch((error) => {
+          setError(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     };
 
     AutoLogin();

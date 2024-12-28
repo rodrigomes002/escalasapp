@@ -67,19 +67,27 @@ const EscalasPage = () => {
         formData.id.toString()
       );
 
-      const response = await axios.put(url, body, { headers: headers });
-      if (!response) setErrorForm("Falha enviar dados");
-      fetchEscalas();
-      closeDialog();
-      cleanForm();
+      axios
+        .put(url, body, { headers: headers })
+        .then(() => {
+          cleanForm();
+          closeDialog();
+        })
+        .catch((error: Error) => {
+          setErrorForm(error.message);
+        });
     } else {
       const { url, headers, body } = POST_ESCALA(formData);
-      const response = await axios.post(url, body, { headers: headers });
 
-      if (!response) setErrorForm("Falha enviar dados");
-      fetchEscalas();
-      closeDialog();
-      cleanForm();
+      axios
+        .post(url, body, { headers: headers })
+        .then(() => {
+          cleanForm();
+          closeDialog();
+        })
+        .catch((error: Error) => {
+          setErrorForm(error.message);
+        });
     }
   };
 
@@ -98,39 +106,38 @@ const EscalasPage = () => {
   };
 
   useEffect(() => {
-    fetchEscalas();
-  }, []);
-
-  const fetchEscalas = async () => {
-    try {
+    const fetchEscalas = () => {
       setIsLoading(true);
       setError(null);
       const { url, headers } = GET_ESCALAS();
 
-      const response = await axios.get(url, {
-        headers: headers,
-      });
+      axios
+        .get(url, {
+          headers: headers,
+        })
+        .then((response) => {
+          const result = response.data;
 
-      if (!response) setError("Falha ao buscar dados");
+          const escalasArray: Escala[] = result.map((item: Escala) => ({
+            id: item.id,
+            data: item.data,
+            instrumental: item.instrumental,
+            vocal: item.vocal,
+            musicasManha: item.musicasManha,
+            musicasNoite: item.musicasNoite,
+          }));
 
-      const result = await response.data;
+          setEscalas(escalasArray);
+          cleanForm();
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          setError(error.message);
+        });
+    };
 
-      const escalasArray: Escala[] = result.map((item: Escala) => ({
-        id: item.id,
-        data: item.data,
-        instrumental: item.instrumental,
-        vocal: item.vocal,
-        musicasManha: item.musicasManha,
-        musicasNoite: item.musicasNoite,
-      }));
-
-      setEscalas(escalasArray);
-      cleanForm();
-      setIsLoading(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    }
-  };
+    fetchEscalas();
+  }, []);
 
   //   const editEscala = (escala: Escala) => {
   //     openDialog();

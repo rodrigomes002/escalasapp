@@ -9,6 +9,7 @@ export function GET_MUSICAS() {
     url,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   };
 }
@@ -18,6 +19,7 @@ export function POST_MUSICA(body: Musica) {
     url,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body,
   };
@@ -28,6 +30,7 @@ export function DELETE_MUSICA(id: string) {
     url: `${url}/${id}`,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
   };
 }
@@ -37,6 +40,7 @@ export function PUT_MUSICA(body: Musica, id: string) {
     url: `${url}/${id}`,
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body,
   };
