@@ -2,7 +2,7 @@ import { Escala } from "@/types/Escala.js";
 import { API_URL } from "./ApiBase.js";
 
 const url = `${API_URL}/escalas`;
-const token = window.localStorage.getItem("authToken");
+const token = localStorage.getItem("authToken");
 
 export function GET_ESCALAS() {
   return {
