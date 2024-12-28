@@ -3,6 +3,7 @@ import { API_URL } from "./ApiBase.js";
 
 const url = `${API_URL}/escalas`;
 const token = localStorage.getItem("authToken");
+console.log(token);
 
 export function GET_ESCALAS() {
   return {
