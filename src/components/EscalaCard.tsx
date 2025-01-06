@@ -1,4 +1,4 @@
-import { Music, Mic, Users } from "lucide-react";
+import { Music, Mic, Users, Loader2, Pencil, Trash } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,9 +6,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 import { Escala } from "@/types/Escala";
 
-export const EscalaCard = ({ escala }: { escala: Escala }) => {
+export const EscalaCard = ({
+  escala,
+  isLoading,
+  editEscala,
+  deleteEscala,
+}: {
+  escala: Escala;
+  isLoading: boolean;
+  editEscala: (escala: Escala) => void;
+  deleteEscala: (escala: Escala) => void;
+}) => {
   const formatarData = (data: string) => {
     return new Date(data).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -97,6 +109,33 @@ export const EscalaCard = ({ escala }: { escala: Escala }) => {
                 ))}
               </ul>
             </div>
+
+            <Button
+              onClick={() => editEscala(escala)}
+              disabled={isLoading}
+              className="mr-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Pencil className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+            <Button onClick={() => deleteEscala(escala)} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Trash className="h-4 w-4" />
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </CardContent>

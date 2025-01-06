@@ -2,15 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarIcon,
-  Loader2,
-  Music2,
-  Plus,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Music2, Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,15 +13,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Escala } from "@/types/Escala";
 import { EscalaCard } from "@/components/EscalaCard";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { GET_ESCALAS, POST_ESCALA, PUT_ESCALA } from "@/services/ApiEscalas";
+import {
+  DELETE_ESCALA,
+  GET_ESCALAS,
+  POST_ESCALA,
+  PUT_ESCALA,
+} from "@/services/ApiEscalas";
 import axios from "axios";
 import { Musica } from "@/types/Musica";
 import { Musico } from "@/types/Musico";
@@ -46,6 +36,7 @@ import { GET_MUSICOS } from "@/services/ApiMusicos";
 import { GET_MUSICAS } from "@/services/ApiMusicas";
 
 const EscalasPage = () => {
+  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [vocal, setVocal] = useState<Musico[]>([]);
   const [instrumental, setInstrumental] = useState<Musico[]>([]);
@@ -70,7 +61,7 @@ const EscalasPage = () => {
   const [errorForm, setErrorForm] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpate] = useState(false);
-  const [date, setDate] = useState<Date>();
+  //const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState<FormEscala>({
     id: 0,
     data: "",
@@ -81,6 +72,7 @@ const EscalasPage = () => {
   });
 
   const openDialog = () => setIsOpen(true);
+  const closeDialog = () => setIsOpen(false);
 
   const handleSubmit = () => {
     const finalFormData = {
@@ -91,33 +83,32 @@ const EscalasPage = () => {
       musicasNoite: selectedMusicasNoite,
     };
 
+    if (selectedMusicasNoite.length < 3 && currentStep == 5) {
+      setErrorForm("Selecione pelo menos 3 músicas");
+      return;
+    }
+
     setErrorForm(null);
     setIsLoading(true);
 
-    // if (
-    //   !formData.data
-    //   //!formData.cantor ||
-    //   //!formData.categoria ||
-    //   //!formData.tom
-    // ) {
-    //   setErrorForm("Preencha todos os campos");
-    //   setIsLoading(false);
-    //   return;
-    // }
-
     if (isUpdate) {
       const { url, headers, body } = PUT_ESCALA(
-        formData,
-        formData.id.toString()
+        finalFormData,
+        finalFormData.id.toString()
       );
 
       axios
         .put(url, body, { headers: headers })
         .then(() => {
           cleanForm();
+          setIsSuccessRequest(true);
+          closeDialog();
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
       const { url, headers, body } = POST_ESCALA(finalFormData);
@@ -126,11 +117,57 @@ const EscalasPage = () => {
         .post(url, body, { headers: headers })
         .then(() => {
           cleanForm();
+          setIsSuccessRequest(true);
+          closeDialog();
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
+  };
+
+  const editEscala = (escala: Escala) => {
+    openDialog();
+
+    setSelectedInstrumentals(escala.instrumental);
+    setSelectedVocals(escala.vocal);
+    setSelectedMusicasManha(escala.musicasManha);
+    setSelectedMusicasNoite(escala.musicasNoite);
+
+    const finalFormData = {
+      id: escala.id,
+      data: format(escala.data, "yyyy-MM-dd"),
+      vocal: selectedVocals,
+      instrumental: selectedInstrumentals,
+      musicasManha: selectedMusicasManha,
+      musicasNoite: selectedMusicasNoite,
+    };
+
+    setFormData(finalFormData);
+    setIsUpate(true);
+  };
+
+  const deleteEscala = (escala: Escala) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { url, headers } = DELETE_ESCALA(escala.id.toString());
+
+    axios
+      .delete(url, { headers: headers })
+      .then(() => {
+        cleanForm();
+        setIsSuccessRequest(true);
+      })
+      .catch((error) => {
+        setError(error.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const cleanForm = () => {
@@ -146,6 +183,42 @@ const EscalasPage = () => {
     setIsUpate(false);
     setErrorForm(null);
   };
+
+  useEffect(() => {
+    const fetchEscalas = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_ESCALAS();
+
+      axios
+        .get(url, {
+          headers: headers,
+        })
+        .then((response) => {
+          const result = response.data;
+
+          const escalasArray: Escala[] = result.map((item: Escala) => ({
+            id: item.id,
+            data: item.data,
+            instrumental: item.instrumental,
+            vocal: item.vocal,
+            musicasManha: item.musicasManha,
+            musicasNoite: item.musicasNoite,
+          }));
+
+          setEscalas(escalasArray);
+          cleanForm();
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          setError(error.message);
+        });
+    };
+
+    if (isSuccessRequest) {
+      fetchEscalas();
+    }
+  }, [isSuccessRequest]);
 
   useEffect(() => {
     const fetchEscalas = () => {
@@ -234,31 +307,38 @@ const EscalasPage = () => {
   }, []);
 
   // Filtra músicas baseado na busca e no filtro de função
-  const filteredEscalas = escalas.filter((musico) => {
-    if (!date) return escalas;
+  const filteredEscalas = escalas.filter(() => {
+    // if (!date) return escalas;
 
-    const ano = date.getFullYear();
-    const mes = String(date.getMonth() + 1).padStart(2, "0"); // Meses começam do 0, então adicionamos 1
-    const dia = String(date.getDate()).padStart(2, "0");
-    const hora = String(date.getHours()).padStart(2, "0");
-    const minuto = String(date.getMinutes()).padStart(2, "0");
-    const segundo = String(date.getSeconds()).padStart(2, "0");
-    const dataFormatada = `${ano}-${mes}-${dia}T${hora}:${minuto}:${segundo}`;
+    // const ano = date.getFullYear();
+    // const mes = String(date.getMonth() + 1).padStart(2, "0"); // Meses começam do 0, então adicionamos 1
+    // const dia = String(date.getDate()).padStart(2, "0");
+    // const hora = String(date.getHours()).padStart(2, "0");
+    // const minuto = String(date.getMinutes()).padStart(2, "0");
+    // const segundo = String(date.getSeconds()).padStart(2, "0");
+    // const dataFormatada = `${ano}-${mes}-${dia}T${hora}:${minuto}:${segundo}`;
 
-    const matchesSearch = musico.data === dataFormatada;
+    // const matchesSearch = musico.data === dataFormatada;
 
-    return matchesSearch;
+    // return matchesSearch;
+
+    return escalas;
   });
+
+  const handleDate = (value: string) => {
+    setErrorForm(null);
+    setFormData({ ...formData, data: value });
+  };
 
   const DateStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="data">Data do Evento</Label>
+        <Label htmlFor="data">Data do culto</Label>
         <Input
           id="data"
           type="date"
           value={formData.data}
-          onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+          onChange={(e) => handleDate(e.target.value)}
         />
       </div>
     </div>
@@ -267,13 +347,13 @@ const EscalasPage = () => {
   const VocalStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label>Selecione os Vocais</Label>
+        <Label>Vocal</Label>
         <Select
           value={selectedVocal?.id.toString()}
           onValueChange={handleSelectVocal}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione o vocal" />
+            <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
             {vocal.map((musico) => (
@@ -292,9 +372,7 @@ const EscalasPage = () => {
           <h3 className="text-lg font-medium mb-2">Vocal selecionado</h3>
           <div className="space-y-2">
             {selectedVocals.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                Nenhuma pessoa selecionada
-              </p>
+              <p className="text-sm text-gray-500">Ninguém selecionado</p>
             ) : (
               selectedVocals.map((musico) => (
                 <div
@@ -327,13 +405,13 @@ const EscalasPage = () => {
   const InstrumentalStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label>Selecione os Instrumentistas</Label>
+        <Label>Instrumental</Label>
         <Select
           value={selectedInstrumental?.id.toString()}
           onValueChange={handleSelectedInstrumental}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione uma pessoa" />
+            <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
             {instrumental.map((musico) => (
@@ -352,9 +430,7 @@ const EscalasPage = () => {
           <h3 className="text-lg font-medium mb-2">Instrumental selecionado</h3>
           <div className="space-y-2">
             {selectedInstrumentals.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                Nenhuma pessoa selecionada
-              </p>
+              <p className="text-sm text-gray-500">Ninguém selecionado</p>
             ) : (
               selectedInstrumentals.map((musico) => (
                 <div
@@ -384,10 +460,10 @@ const EscalasPage = () => {
     </div>
   );
 
-  const SongsStep = () => (
+  const MonringSongsStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label>Selecione as Músicas da manhã</Label>
+        <Label>Músicas manhã</Label>
         <Select
           value={selectedMusicaManha?.id.toString()}
           onValueChange={handleSelectMusicasManha}
@@ -444,10 +520,10 @@ const EscalasPage = () => {
     </div>
   );
 
-  const SongsStep2 = () => (
+  const NightSongsStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label>Selecione as Músicas da noite</Label>
+        <Label>Músicas noite</Label>
         <Select
           value={selectedMusicaNoite?.id.toString()}
           onValueChange={handleSelectMusicasNoite}
@@ -506,6 +582,28 @@ const EscalasPage = () => {
 
   // Navigation functions
   const nextStep = () => {
+    if (!formData.data && currentStep == 1) {
+      setErrorForm("Preencha uma data");
+      return;
+    }
+
+    if (selectedVocals.length < 2 && currentStep == 2) {
+      setErrorForm("Selecione pelo menos 2 pessoas para o vocal");
+      return;
+    }
+
+    if (selectedInstrumentals.length < 3 && currentStep == 3) {
+      setErrorForm("Selecione pelo menos 3 pessoas para o instrumental");
+      return;
+    }
+
+    if (selectedMusicasManha.length < 3 && currentStep == 4) {
+      setErrorForm("Selecione pelo menos 3 músicas");
+      return;
+    }
+
+    setErrorForm(null);
+
     if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
 
@@ -515,6 +613,7 @@ const EscalasPage = () => {
 
   // Re-use existing handler functions
   const handleSelectVocal = (musicoId: string) => {
+    setErrorForm(null);
     const musico = vocal.find((p) => p.id.toString() === musicoId);
     if (musico && !selectedVocals.find((p) => p.id.toString() === musicoId)) {
       setSelectedVocals([...selectedVocals, musico]);
@@ -529,6 +628,7 @@ const EscalasPage = () => {
   };
 
   const handleSelectedInstrumental = (musicoId: string) => {
+    setErrorForm(null);
     const musico = instrumental.find((p) => p.id.toString() === musicoId);
     if (
       musico &&
@@ -546,6 +646,7 @@ const EscalasPage = () => {
   };
 
   const handleSelectMusicasManha = (musicaId: string) => {
+    setErrorForm(null);
     const musica = musicas.find((p) => p.id.toString() === musicaId);
     if (
       musica &&
@@ -563,6 +664,7 @@ const EscalasPage = () => {
   };
 
   const handleSelectMusicasNoite = (musicaId: string) => {
+    setErrorForm(null);
     const musica = musicas.find((p) => p.id.toString() === musicaId);
     if (
       musica &&
@@ -596,7 +698,7 @@ const EscalasPage = () => {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Popover>
+          {/* <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
@@ -617,7 +719,7 @@ const EscalasPage = () => {
                 initialFocus
               />
             </PopoverContent>
-          </Popover>
+          </Popover> */}
         </div>
         <Button onClick={openDialog} disabled={isLoading}>
           <Plus className="h-4 w-4" />
@@ -642,7 +744,12 @@ const EscalasPage = () => {
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEscalas.map((escala) => (
-            <EscalaCard escala={escala} />
+            <EscalaCard
+              escala={escala}
+              isLoading={isLoading}
+              editEscala={editEscala}
+              deleteEscala={deleteEscala}
+            />
           ))}
         </div>
       )}
@@ -670,14 +777,17 @@ const EscalasPage = () => {
               </DialogDescription>
             </DialogHeader>
 
-            {errorForm}
-
             {/* Step Content */}
             {currentStep === 1 && <DateStep />}
             {currentStep === 2 && <VocalStep />}
             {currentStep === 3 && <InstrumentalStep />}
-            {currentStep === 4 && <SongsStep />}
-            {currentStep === 5 && <SongsStep2 />}
+            {currentStep === 4 && <MonringSongsStep />}
+            {currentStep === 5 && <NightSongsStep />}
+
+            <div className="flex justify-center">
+              {errorForm && <p className="text-red-500 mt-3">{errorForm}</p>}
+            </div>
+
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button
