@@ -33,7 +33,45 @@ export const EscalaCard = ({
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold capitalize">
-          {formatarData(escala.data)}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">{formatarData(escala.data)}</div>
+
+              <div className="space-y-2">
+                <div className="ml-4">
+                  <Button
+                    onClick={() => editEscala(escala)}
+                    disabled={isLoading}
+                    className="mr-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => deleteEscala(escala)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        <Trash className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardTitle>
         <CardDescription>Escala de Louvor</CardDescription>
       </CardHeader>
@@ -46,7 +84,7 @@ export const EscalaCard = ({
               Equipe
             </h3>
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* Vocal */}
             <div className="space-y-2">
               <h4 className="font-medium flex items-center gap-2">
@@ -78,7 +116,7 @@ export const EscalaCard = ({
           </div>
         </div>
 
-        {/* Músicas */}
+        {/* Repertório */}
         <div className="space-y-4">
           <div className="border-b pb-2">
             <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -86,7 +124,7 @@ export const EscalaCard = ({
               Repertório
             </h3>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             {/* Músicas Manhã */}
             <div className="space-y-2">
               <h4 className="font-medium">Manhã</h4>
@@ -109,33 +147,6 @@ export const EscalaCard = ({
                 ))}
               </ul>
             </div>
-
-            <Button
-              onClick={() => editEscala(escala)}
-              disabled={isLoading}
-              className="mr-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                <>
-                  <Pencil className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-            <Button onClick={() => deleteEscala(escala)} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                <>
-                  <Trash className="h-4 w-4" />
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </CardContent>
