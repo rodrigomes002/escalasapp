@@ -575,8 +575,10 @@ const EscalasPage = () => {
     );
   };
 
-  const getFuncaoNome = (funcao: FuncaoEnum): string => {
-    return FuncaoEnum[funcao];
+  const getFuncaoNome = (funcao: FuncaoEnum | null): string => {
+    if (funcao) return FuncaoEnum[funcao];
+
+    return "";
   };
 
   return (
@@ -664,13 +666,14 @@ const EscalasPage = () => {
               </DialogDescription>
             </DialogHeader>
 
+            {errorForm}
+
             {/* Step Content */}
             {currentStep === 1 && <DateStep />}
             {currentStep === 2 && <VocalStep />}
             {currentStep === 3 && <InstrumentalStep />}
             {currentStep === 4 && <SongsStep />}
             {currentStep === 5 && <SongsStep2 />}
-
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
               <Button
