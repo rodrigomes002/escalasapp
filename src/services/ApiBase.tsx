@@ -1,1 +1,1 @@
-export const API_URL: string = "https://escalasapp.com.br/api";
+export const API_URL: string = import.meta.env.VITE_API_URL;
