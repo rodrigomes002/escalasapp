@@ -2,12 +2,19 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarIcon, Loader2, Music, Music2, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarIcon,
+  Loader2,
+  Music2,
+  Plus,
+  X,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -24,8 +31,39 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { GET_ESCALAS, POST_ESCALA, PUT_ESCALA } from "@/services/ApiEscalas";
 import axios from "axios";
+import { Musica } from "@/types/Musica";
+import { Musico } from "@/types/Musico";
+import { FormEscala } from "@/types/FormEscala";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FuncaoEnum } from "@/enums/FuncaoEnum";
+import { GET_MUSICOS } from "@/services/ApiMusicos";
+import { GET_MUSICAS } from "@/services/ApiMusicas";
 
 const EscalasPage = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [vocal, setVocal] = useState<Musico[]>([]);
+  const [instrumental, setInstrumental] = useState<Musico[]>([]);
+  const [selectedVocal, setSelectedVocal] = useState<Musico>();
+  const [selectedVocals, setSelectedVocals] = useState<Musico[]>([]);
+  const [selectedInstrumental, setSelectedInstrumental] = useState<Musico>();
+  const [selectedInstrumentals, setSelectedInstrumentals] = useState<Musico[]>(
+    []
+  );
+  const [musicas, setMusica] = useState<Musica[]>([]);
+  const [selectedMusicaManha, setSelectedMusicaManha] = useState<Musica>();
+  const [selectedMusicasManha, setSelectedMusicasManha] = useState<Musica[]>(
+    []
+  );
+  const [selectedMusicaNoite, setSelectedMusicaNoite] = useState<Musica>();
+  const [selectedMusicasNoite, setSelectedMusicasNoite] = useState<Musica[]>(
+    []
+  );
   const [escalas, setEscalas] = useState<Escala[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +71,7 @@ const EscalasPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpate] = useState(false);
   const [date, setDate] = useState<Date>();
-  const [formData, setFormData] = useState<Escala>({
+  const [formData, setFormData] = useState<FormEscala>({
     id: 0,
     data: "",
     instrumental: [],
@@ -43,23 +81,29 @@ const EscalasPage = () => {
   });
 
   const openDialog = () => setIsOpen(true);
-  const closeDialog = () => setIsOpen(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
+    const finalFormData = {
+      ...formData,
+      vocal: selectedVocals,
+      instrumental: selectedInstrumentals,
+      musicasManha: selectedMusicasManha,
+      musicasNoite: selectedMusicasNoite,
+    };
+
     setErrorForm(null);
     setIsLoading(true);
 
-    if (
-      !formData.data
-      //!formData.cantor ||
-      //!formData.categoria ||
-      //!formData.tom
-    ) {
-      setErrorForm("Preencha todos os campos");
-      setIsLoading(false);
-      return;
-    }
+    // if (
+    //   !formData.data
+    //   //!formData.cantor ||
+    //   //!formData.categoria ||
+    //   //!formData.tom
+    // ) {
+    //   setErrorForm("Preencha todos os campos");
+    //   setIsLoading(false);
+    //   return;
+    // }
 
     if (isUpdate) {
       const { url, headers, body } = PUT_ESCALA(
@@ -71,19 +115,17 @@ const EscalasPage = () => {
         .put(url, body, { headers: headers })
         .then(() => {
           cleanForm();
-          closeDialog();
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
         });
     } else {
-      const { url, headers, body } = POST_ESCALA(formData);
+      const { url, headers, body } = POST_ESCALA(finalFormData);
 
       axios
         .post(url, body, { headers: headers })
         .then(() => {
           cleanForm();
-          closeDialog();
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
@@ -136,34 +178,60 @@ const EscalasPage = () => {
         });
     };
 
+    const fetchMusicos = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_MUSICOS();
+
+      axios
+        .get(url, { headers: headers })
+        .then((response) => {
+          const result = response.data;
+          const musicosArray: Musico[] = result.map((item: Musico) => ({
+            id: item.id,
+            nome: item.nome,
+            funcao: item.funcao,
+          }));
+
+          setVocal(musicosArray.filter((m) => m.funcao === FuncaoEnum.Vocal));
+          setInstrumental(
+            musicosArray.filter((m) => m.funcao !== FuncaoEnum.Vocal)
+          );
+          setIsLoading(false);
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
+    };
+
+    const fetchMusicas = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_MUSICAS();
+
+      axios
+        .get(url, { headers: headers })
+        .then((response) => {
+          const result = response.data;
+          const musicasArray: Musica[] = result.map((item: Musica) => ({
+            id: item.id,
+            nome: item.nome,
+            cantor: item.cantor,
+            tom: item.tom,
+          }));
+
+          setMusica(musicasArray);
+          setIsLoading(false);
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
+    };
+
+    fetchMusicos();
+    fetchMusicas();
     fetchEscalas();
   }, []);
-
-  //   const editEscala = (escala: Escala) => {
-  //     openDialog();
-
-  //     const form = {
-  //       id: escala.id,
-  //       nome: escala.nome,
-  //       cantor: escala.cantor,
-  //       //categoria: escala.categoria,
-  //       tom: escala.tom,
-  //     };
-
-  //     setFormData(form);
-  //     setIsUpate(true);
-  //   };
-
-  //   const deleteEscala = async (id: string) => {
-  //     setIsLoading(true);
-  //     setError(null);
-
-  //     const { url, options } = ESCALAS_DELETE(id);
-  //     const response = await fetch(url, options);
-  //     if (!response.ok) setError("Falha ao atualizar dados");
-  //     setIsLoading(false);
-  //     fetchEscalas();
-  //   };
 
   // Filtra músicas baseado na busca e no filtro de função
   const filteredEscalas = escalas.filter((musico) => {
@@ -181,6 +249,335 @@ const EscalasPage = () => {
 
     return matchesSearch;
   });
+
+  const DateStep = () => (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor="data">Data do Evento</Label>
+        <Input
+          id="data"
+          type="date"
+          value={formData.data}
+          onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+        />
+      </div>
+    </div>
+  );
+
+  const VocalStep = () => (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label>Selecione os Vocais</Label>
+        <Select
+          value={selectedVocal?.id.toString()}
+          onValueChange={handleSelectVocal}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione o vocal" />
+          </SelectTrigger>
+          <SelectContent>
+            {vocal.map((musico) => (
+              <SelectItem
+                key={musico.id}
+                value={musico.id.toString()}
+                disabled={selectedVocals.some((p) => p.id === musico.id)}
+              >
+                {musico.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-medium mb-2">Vocal selecionado</h3>
+          <div className="space-y-2">
+            {selectedVocals.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma pessoa selecionada
+              </p>
+            ) : (
+              selectedVocals.map((musico) => (
+                <div
+                  key={musico.id}
+                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{musico.nome}</p>
+                    <p className="text-sm text-gray-500">
+                      {getFuncaoNome(musico.funcao)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeVocal(musico.id.toString())}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const InstrumentalStep = () => (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label>Selecione os Instrumentistas</Label>
+        <Select
+          value={selectedInstrumental?.id.toString()}
+          onValueChange={handleSelectedInstrumental}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione uma pessoa" />
+          </SelectTrigger>
+          <SelectContent>
+            {instrumental.map((musico) => (
+              <SelectItem
+                key={musico.id}
+                value={musico.id.toString()}
+                disabled={selectedInstrumentals.some((p) => p.id === musico.id)}
+              >
+                {musico.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-medium mb-2">Instrumental selecionado</h3>
+          <div className="space-y-2">
+            {selectedInstrumentals.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma pessoa selecionada
+              </p>
+            ) : (
+              selectedInstrumentals.map((musico) => (
+                <div
+                  key={musico.id}
+                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{musico.nome}</p>
+                    <p className="text-sm text-gray-500">
+                      {getFuncaoNome(musico.funcao)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeInstrumental(musico.id.toString())}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SongsStep = () => (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label>Selecione as Músicas da manhã</Label>
+        <Select
+          value={selectedMusicaManha?.id.toString()}
+          onValueChange={handleSelectMusicasManha}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione uma música" />
+          </SelectTrigger>
+          <SelectContent>
+            {musicas.map((musica) => (
+              <SelectItem
+                key={musica.id}
+                value={musica.id.toString()}
+                disabled={selectedMusicasManha.some((p) => p.id === musica.id)}
+              >
+                {musica.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-medium mb-2">Músicas selecionadas</h3>
+          <div className="space-y-2">
+            {selectedMusicasManha.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma música selecionada
+              </p>
+            ) : (
+              selectedMusicasManha.map((musica) => (
+                <div
+                  key={musica.id}
+                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{musica.nome}</p>
+                    <p className="text-sm text-gray-500">
+                      {musica.cantor} - {musica.tom}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeMusicasManha(musica.id.toString())}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SongsStep2 = () => (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label>Selecione as Músicas da noite</Label>
+        <Select
+          value={selectedMusicaNoite?.id.toString()}
+          onValueChange={handleSelectMusicasNoite}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione uma música" />
+          </SelectTrigger>
+          <SelectContent>
+            {musicas.map((musica) => (
+              <SelectItem
+                key={musica.id}
+                value={musica.id.toString()}
+                disabled={selectedMusicasNoite.some((p) => p.id === musica.id)}
+              >
+                {musica.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-4">
+          <h3 className="text-lg font-medium mb-2">Músicas selecionadas</h3>
+          <div className="space-y-2">
+            {selectedMusicasNoite.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma música selecionada
+              </p>
+            ) : (
+              selectedMusicasNoite.map((musica) => (
+                <div
+                  key={musica.id}
+                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{musica.nome}</p>
+                    <p className="text-sm text-gray-500">
+                      {musica.cantor} - {musica.tom}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeMusicasNoite(musica.id.toString())}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Navigation functions
+  const nextStep = () => {
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  // Re-use existing handler functions
+  const handleSelectVocal = (musicoId: string) => {
+    const musico = vocal.find((p) => p.id.toString() === musicoId);
+    if (musico && !selectedVocals.find((p) => p.id.toString() === musicoId)) {
+      setSelectedVocals([...selectedVocals, musico]);
+    }
+  };
+
+  const removeVocal = (musicoId: string) => {
+    setSelectedVocals(
+      selectedVocals.filter((p) => p.id.toString() !== musicoId)
+    );
+  };
+
+  const handleSelectedInstrumental = (musicoId: string) => {
+    const musico = instrumental.find((p) => p.id.toString() === musicoId);
+    if (
+      musico &&
+      !selectedInstrumentals.find((p) => p.id.toString() === musicoId)
+    ) {
+      setSelectedInstrumentals([...selectedInstrumentals, musico]);
+    }
+  };
+
+  const removeInstrumental = (musicoId: string) => {
+    setSelectedInstrumentals(
+      selectedInstrumentals.filter((p) => p.id.toString() !== musicoId)
+    );
+  };
+
+  const handleSelectMusicasManha = (musicaId: string) => {
+    const musica = musicas.find((p) => p.id.toString() === musicaId);
+    if (
+      musica &&
+      !selectedMusicasManha.find((p) => p.id.toString() === musicaId)
+    ) {
+      setSelectedMusicasManha([...selectedMusicasManha, musica]);
+    }
+  };
+
+  const removeMusicasManha = (musicaId: string) => {
+    setSelectedMusicasManha(
+      selectedMusicasManha.filter((p) => p.id.toString() !== musicaId)
+    );
+  };
+
+  const handleSelectMusicasNoite = (musicaId: string) => {
+    const musica = musicas.find((p) => p.id.toString() === musicaId);
+    if (
+      musica &&
+      !selectedMusicasNoite.find((p) => p.id.toString() === musicaId)
+    ) {
+      setSelectedMusicasNoite([...selectedMusicasNoite, musica]);
+    }
+  };
+
+  const removeMusicasNoite = (musicaId: string) => {
+    setSelectedMusicasNoite(
+      selectedMusicasNoite.filter((p) => p.id.toString() !== musicaId)
+    );
+  };
+
+  const getFuncaoNome = (funcao: FuncaoEnum): string => {
+    return FuncaoEnum[funcao];
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -261,50 +658,42 @@ const EscalasPage = () => {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nova Música</DialogTitle>
+              <DialogTitle>Crie a escala</DialogTitle>
               <DialogDescription>
-                Adicione uma nova música ao repertório
+                Selecione integrantes e músicas para montar uma escala
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="data" className="text-right">
-                    Data
-                  </Label>
-                  <Input
-                    id="data"
-                    name="data"
-                    className="col-span-2"
-                    value={formData.data}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        data: e.target.value,
-                      });
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-center">
-                {errorForm && <p className="text-red-500  mb-3">{errorForm}</p>}
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    <>
-                      <Music className="mr-2 h-4 w-4" />
-                      Salvar
-                    </>
-                  )}
+            {/* Step Content */}
+            {currentStep === 1 && <DateStep />}
+            {currentStep === 2 && <VocalStep />}
+            {currentStep === 3 && <InstrumentalStep />}
+            {currentStep === 4 && <SongsStep />}
+            {currentStep === 5 && <SongsStep2 />}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Anterior
+              </Button>
+
+              {currentStep < 5 ? (
+                <Button onClick={nextStep}>
+                  Próximo
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
-              </DialogFooter>
-            </form>
+              ) : (
+                <Button onClick={handleSubmit}>
+                  <Music2 className="h-4 w-4 mr-2" />
+                  Finalizar
+                </Button>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>

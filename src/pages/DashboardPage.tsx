@@ -12,8 +12,8 @@ import RepertorioPage from "./RepertorioPage";
 import MenuItem from "@/components/MenuItem";
 import { MenuOption } from "@/types/MenuOption";
 import MembrosPage from "./MembrosPage";
-import EscalasPage from "./EscalasPage";
 import { useAuth } from "@/hooks/useAuth";
+import EscalasPage from "./EscalasPage";
 
 const DashboardPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

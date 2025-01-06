@@ -11,9 +11,8 @@ import { Escala } from "@/types/Escala";
 export const EscalaCard = ({ escala }: { escala: Escala }) => {
   const formatarData = (data: string) => {
     return new Date(data).toLocaleDateString("pt-BR", {
-      weekday: "long",
       day: "2-digit",
-      month: "long",
+      month: "2-digit",
       year: "numeric",
     });
   };

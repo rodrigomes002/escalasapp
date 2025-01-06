@@ -87,9 +87,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const AutoLogin = () => {
-      setIsLoading(true);
-      setError(null);
-
       const token = localStorage.getItem("authToken");
 
       if (!token) {
@@ -97,6 +94,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
+      setIsLoading(true);
+      setError(null);
       const { url, body, headers } = VALIDATE_TOKEN(token);
       axios
         .post(url, body, { headers: headers })
@@ -120,6 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     AutoLogin();
+    setIsLoading(false);
   }, []);
 
   const value = {
