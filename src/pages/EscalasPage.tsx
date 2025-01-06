@@ -518,6 +518,7 @@ const EscalasPage = () => {
     const musico = vocal.find((p) => p.id.toString() === musicoId);
     if (musico && !selectedVocals.find((p) => p.id.toString() === musicoId)) {
       setSelectedVocals([...selectedVocals, musico]);
+      setSelectedVocal(musico);
     }
   };
 
@@ -534,6 +535,7 @@ const EscalasPage = () => {
       !selectedInstrumentals.find((p) => p.id.toString() === musicoId)
     ) {
       setSelectedInstrumentals([...selectedInstrumentals, musico]);
+      setSelectedInstrumental(musico);
     }
   };
 
@@ -550,6 +552,7 @@ const EscalasPage = () => {
       !selectedMusicasManha.find((p) => p.id.toString() === musicaId)
     ) {
       setSelectedMusicasManha([...selectedMusicasManha, musica]);
+      setSelectedMusicaManha(musica);
     }
   };
 
@@ -566,6 +569,7 @@ const EscalasPage = () => {
       !selectedMusicasNoite.find((p) => p.id.toString() === musicaId)
     ) {
       setSelectedMusicasNoite([...selectedMusicasNoite, musica]);
+      setSelectedMusicaNoite(musica);
     }
   };
 
