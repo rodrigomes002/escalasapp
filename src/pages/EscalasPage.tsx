@@ -60,7 +60,7 @@ const EscalasPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [errorForm, setErrorForm] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isUpdate, setIsUpate] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   //const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState<FormEscala>({
     id: 0,
@@ -71,7 +71,13 @@ const EscalasPage = () => {
     musicasNoite: [],
   });
 
-  const openDialog = () => setIsOpen(true);
+  const openDialog = (isUpdate: boolean) => {
+    if (!isUpdate) cleanForm();
+
+    setIsUpdate(isUpdate);
+    setIsOpen(true);
+  };
+
   const closeDialog = () => setIsOpen(false);
 
   const handleSubmit = () => {
@@ -130,7 +136,7 @@ const EscalasPage = () => {
   };
 
   const editEscala = (escala: Escala) => {
-    openDialog();
+    openDialog(true);
 
     setSelectedInstrumentals(escala.instrumental);
     setSelectedVocals(escala.vocal);
@@ -147,7 +153,7 @@ const EscalasPage = () => {
     };
 
     setFormData(finalFormData);
-    setIsUpate(true);
+    setIsUpdate(true);
   };
 
   const deleteEscala = (escala: Escala) => {
@@ -171,6 +177,12 @@ const EscalasPage = () => {
   };
 
   const cleanForm = () => {
+    setCurrentStep(1);
+    setSelectedInstrumentals([]);
+    setSelectedVocals([]);
+    setSelectedMusicasManha([]);
+    setSelectedMusicasNoite([]);
+
     setFormData({
       id: 0,
       data: "",
@@ -180,7 +192,7 @@ const EscalasPage = () => {
       musicasNoite: [],
     });
 
-    setIsUpate(false);
+    setIsUpdate(false);
     setErrorForm(null);
   };
 
@@ -460,7 +472,7 @@ const EscalasPage = () => {
     </div>
   );
 
-  const MonringSongsStep = () => (
+  const MorningSongsStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label>Músicas manhã</Label>
@@ -721,7 +733,7 @@ const EscalasPage = () => {
             </PopoverContent>
           </Popover> */}
         </div>
-        <Button onClick={openDialog} disabled={isLoading}>
+        <Button onClick={() => openDialog(false)} disabled={isLoading}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
@@ -771,7 +783,9 @@ const EscalasPage = () => {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Crie a escala</DialogTitle>
+              <DialogTitle>
+                {isUpdate ? "Edite a escala" : "Crie a Escala"}
+              </DialogTitle>
               <DialogDescription>
                 Selecione integrantes e músicas para montar uma escala
               </DialogDescription>
@@ -781,7 +795,7 @@ const EscalasPage = () => {
             {currentStep === 1 && <DateStep />}
             {currentStep === 2 && <VocalStep />}
             {currentStep === 3 && <InstrumentalStep />}
-            {currentStep === 4 && <MonringSongsStep />}
+            {currentStep === 4 && <MorningSongsStep />}
             {currentStep === 5 && <NightSongsStep />}
 
             <div className="flex justify-center">
@@ -807,7 +821,7 @@ const EscalasPage = () => {
               ) : (
                 <Button onClick={handleSubmit}>
                   <Music2 className="h-4 w-4 mr-2" />
-                  Finalizar
+                  Salvar
                 </Button>
               )}
             </div>
