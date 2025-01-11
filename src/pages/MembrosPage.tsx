@@ -45,14 +45,18 @@ import {
   PUT_MUSICO,
 } from "@/services/ApiMusicos";
 import axios from "axios";
+import PaginationComponent from "@/components/PaginationComponent";
 
 const MembrosPage = () => {
+  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [musicos, setMusicos] = useState<Musico[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorForm, setErrorForm] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [funcaoFilter, setFuncaoFilter] = useState<string>("all");
+  const [nome, setNome] = useState<string>("");
+  const [nomeBusca, setNomeBusca] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpate] = useState(false);
   const [formData, setFormData] = useState<Musico>({
@@ -68,15 +72,20 @@ const MembrosPage = () => {
       const { url, headers } = GET_MUSICOS();
 
       axios
-        .get(url, { headers: headers })
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
+        })
         .then((response) => {
           const result = response.data;
-          const musicosArray: Musico[] = result.map((item: Musico) => ({
+
+          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
             id: item.id,
             nome: item.nome,
             funcao: item.funcao,
           }));
 
+          setTotalPages(Math.ceil(result.totalCount / 9));
           setMusicos(musicosArray);
           cleanForm();
           setIsLoading(false);
@@ -87,7 +96,40 @@ const MembrosPage = () => {
     };
 
     fetchMusicos();
-  }, []);
+  }, [currentPage, nomeBusca]);
+
+  useEffect(() => {
+    const fetchMusicos = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_MUSICOS();
+
+      axios
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
+        })
+        .then((response) => {
+          const result = response.data;
+
+          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
+            id: item.id,
+            nome: item.nome,
+            funcao: item.funcao,
+          }));
+
+          setTotalPages(Math.ceil(result.totalCount / 9));
+          setMusicos(musicosArray);
+          cleanForm();
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          setError(error.message);
+        });
+    };
+
+    if (isSuccessRequest) fetchMusicos();
+  }, [currentPage, nomeBusca, isSuccessRequest]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +151,7 @@ const MembrosPage = () => {
       axios
         .put(url, body, { headers: headers })
         .then(() => {
+          setIsSuccessRequest(true);
           closeDialog();
           cleanForm();
         })
@@ -121,6 +164,7 @@ const MembrosPage = () => {
       axios
         .post(url, body, { headers: headers })
         .then(() => {
+          setIsSuccessRequest(true);
           closeDialog();
           cleanForm();
         })
@@ -151,7 +195,9 @@ const MembrosPage = () => {
 
     axios
       .delete(url, { headers: headers })
-      .then(() => {})
+      .then(() => {
+        setIsSuccessRequest(true);
+      })
       .catch((error) => {
         setError(error.message);
       })
@@ -178,15 +224,10 @@ const MembrosPage = () => {
     return FuncaoEnum[funcao];
   };
 
-  // Filtra músicos baseado na busca e no filtro de função
-  const filteredMusicos = musicos.filter((musico) => {
-    const matchesSearch = musico.nome
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesRole =
-      funcaoFilter === "all" || funcaoFilter === musico.funcao?.toString();
-    return matchesSearch && matchesRole;
-  });
+  const search = () => {
+    setNomeBusca(nome);
+    setIsSuccessRequest(true);
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -204,26 +245,14 @@ const MembrosPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar músicos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
             className="pl-9"
           />
         </div>
-        <Select value={funcaoFilter} onValueChange={setFuncaoFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filtrar por função" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as funções</SelectItem>
-            {Object.entries(FuncaoEnum)
-              .filter(([key]) => isNaN(Number(key))) // Filtra apenas as chaves string do enum
-              .map(([key, value]) => (
-                <SelectItem key={value} value={value.toString()}>
-                  {key}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
+        <Button onClick={search} disabled={isLoading}>
+          <Search className="h-4 w-4" />
+        </Button>
         <Button onClick={openDialog} disabled={isLoading}>
           <Plus className="h-4 w-4" />
         </Button>
@@ -246,7 +275,7 @@ const MembrosPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredMusicos.map((musico) => (
+          {musicos.map((musico) => (
             <Card key={musico.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle>{musico.nome}</CardTitle>
@@ -290,8 +319,14 @@ const MembrosPage = () => {
         </div>
       )}
 
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+
       {/* Empty State */}
-      {!isLoading && !error && filteredMusicos.length === 0 && (
+      {!isLoading && !error && musicos.length === 0 && (
         <div className="text-center py-12">
           <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">

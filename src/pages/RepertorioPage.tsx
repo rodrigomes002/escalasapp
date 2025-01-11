@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -35,13 +35,18 @@ import {
   PUT_MUSICA,
 } from "@/services/ApiMusicas";
 import axios from "axios";
+import PaginationComponent from "@/components/PaginationComponent";
 
 const RepertorioPage = () => {
+  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const [musicas, setMusicas] = useState<Musica[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorForm, setErrorForm] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [nome, setNome] = useState<string>("");
+  const [nomeBusca, setNomeBusca] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpate] = useState(false);
   const [formData, setFormData] = useState<Musica>({
@@ -59,17 +64,21 @@ const RepertorioPage = () => {
       const { url, headers } = GET_MUSICAS();
 
       axios
-        .get(url, { headers: headers })
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
+        })
         .then((response) => {
           const result = response.data;
 
-          const musicasArray: Musica[] = result.map((item: Musica) => ({
+          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
             id: item.id,
             nome: item.nome,
             cantor: item.cantor,
             tom: item.tom,
           }));
 
+          setTotalPages(Math.ceil(result.totalCount / 9));
           setMusicas(musicasArray);
           cleanForm();
           setIsLoading(false);
@@ -80,19 +89,48 @@ const RepertorioPage = () => {
     };
 
     fetchMusicas();
-  }, []);
+  }, [currentPage, nomeBusca]);
+
+  useEffect(() => {
+    const fetchMusicas = () => {
+      setIsLoading(true);
+      setError(null);
+      const { url, headers } = GET_MUSICAS();
+
+      axios
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
+        })
+        .then((response) => {
+          const result = response.data;
+
+          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
+            id: item.id,
+            nome: item.nome,
+            cantor: item.cantor,
+            tom: item.tom,
+          }));
+
+          setTotalPages(Math.ceil(result.totalCount / 9));
+          setMusicas(musicasArray);
+          cleanForm();
+          setIsLoading(false);
+        })
+        .catch((error: Error) => {
+          setError(error.message);
+        });
+    };
+
+    if (isSuccessRequest) fetchMusicas();
+  }, [currentPage, nomeBusca, isSuccessRequest]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorForm(null);
     setIsLoading(true);
 
-    if (
-      !formData.nome ||
-      !formData.cantor ||
-      //!formData.categoria ||
-      !formData.tom
-    ) {
+    if (!formData.nome || !formData.cantor || !formData.tom) {
       setErrorForm("Preencha todos os campos");
       setIsLoading(false);
       return;
@@ -107,6 +145,7 @@ const RepertorioPage = () => {
       axios
         .put(url, body, { headers: headers })
         .then(() => {
+          setIsSuccessRequest(true);
           closeDialog();
           cleanForm();
         })
@@ -119,6 +158,7 @@ const RepertorioPage = () => {
       axios
         .post(url, body, { headers: headers })
         .then(() => {
+          setIsSuccessRequest(true);
           closeDialog();
           cleanForm();
         })
@@ -150,7 +190,9 @@ const RepertorioPage = () => {
     const { url, headers } = DELETE_MUSICA(id);
     axios
       .delete(url, { headers: headers })
-      .then(() => {})
+      .then(() => {
+        setIsSuccessRequest(true);
+      })
       .catch((error: Error) => {
         setError(error.message);
       });
@@ -171,20 +213,13 @@ const RepertorioPage = () => {
     setErrorForm(null);
   };
 
+  const search = () => {
+    setNomeBusca(nome);
+    setIsSuccessRequest(true);
+  };
+
   const openDialog = () => setIsOpen(true);
   const closeDialog = () => setIsOpen(false);
-
-  // Filtra músicas baseado na busca e no filtro de função
-  const filteredMusicas = musicas.filter((musico) => {
-    const matchesSearch = musico.nome
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-
-    const matchesCantor = musico.cantor
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesSearch || matchesCantor;
-  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -202,11 +237,14 @@ const RepertorioPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar músicas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
             className="pl-9"
           />
         </div>
+        <Button onClick={search} disabled={isLoading}>
+          <Search className="h-4 w-4" />
+        </Button>
         <Button onClick={openDialog} disabled={isLoading}>
           <Plus className="h-4 w-4" />
         </Button>
@@ -229,7 +267,7 @@ const RepertorioPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredMusicas.map((musico) => (
+          {musicas.map((musico) => (
             <Card key={musico.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle>{musico.nome}</CardTitle>
@@ -273,7 +311,7 @@ const RepertorioPage = () => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && filteredMusicas.length === 0 && (
+      {!isLoading && !error && musicas.length === 0 && (
         <div className="text-center py-12">
           <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">
@@ -284,6 +322,12 @@ const RepertorioPage = () => {
           </p>
         </div>
       )}
+
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       <div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -61,7 +61,6 @@ const EscalasPage = () => {
   const [errorForm, setErrorForm] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
-  //const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState<FormEscala>({
     id: 0,
     data: "",
@@ -227,9 +226,7 @@ const EscalasPage = () => {
         });
     };
 
-    if (isSuccessRequest) {
-      fetchEscalas();
-    }
+    if (isSuccessRequest) fetchEscalas();
   }, [isSuccessRequest]);
 
   useEffect(() => {
@@ -269,10 +266,13 @@ const EscalasPage = () => {
       const { url, headers } = GET_MUSICOS();
 
       axios
-        .get(url, { headers: headers })
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: 1, pageSize: 999 },
+        })
         .then((response) => {
           const result = response.data;
-          const musicosArray: Musico[] = result.map((item: Musico) => ({
+          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
             id: item.id,
             nome: item.nome,
             funcao: item.funcao,
@@ -295,10 +295,13 @@ const EscalasPage = () => {
       const { url, headers } = GET_MUSICAS();
 
       axios
-        .get(url, { headers: headers })
+        .get(url, {
+          headers: headers,
+          params: { pageNumber: 1, pageSize: 999 },
+        })
         .then((response) => {
           const result = response.data;
-          const musicasArray: Musica[] = result.map((item: Musica) => ({
+          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
             id: item.id,
             nome: item.nome,
             cantor: item.cantor,
@@ -317,25 +320,6 @@ const EscalasPage = () => {
     fetchMusicas();
     fetchEscalas();
   }, []);
-
-  // Filtra músicas baseado na busca e no filtro de função
-  const filteredEscalas = escalas.filter(() => {
-    // if (!date) return escalas;
-
-    // const ano = date.getFullYear();
-    // const mes = String(date.getMonth() + 1).padStart(2, "0"); // Meses começam do 0, então adicionamos 1
-    // const dia = String(date.getDate()).padStart(2, "0");
-    // const hora = String(date.getHours()).padStart(2, "0");
-    // const minuto = String(date.getMinutes()).padStart(2, "0");
-    // const segundo = String(date.getSeconds()).padStart(2, "0");
-    // const dataFormatada = `${ano}-${mes}-${dia}T${hora}:${minuto}:${segundo}`;
-
-    // const matchesSearch = musico.data === dataFormatada;
-
-    // return matchesSearch;
-
-    return escalas;
-  });
 
   const handleDate = (value: string) => {
     setErrorForm(null);
@@ -755,7 +739,7 @@ const EscalasPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEscalas.map((escala) => (
+          {escalas.map((escala) => (
             <EscalaCard
               escala={escala}
               isLoading={isLoading}
@@ -767,7 +751,7 @@ const EscalasPage = () => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && filteredEscalas.length === 0 && (
+      {!isLoading && !error && escalas.length === 0 && (
         <div className="text-center py-12">
           <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">
