@@ -157,6 +157,9 @@ const MembrosPage = () => {
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
       const { url, headers, body } = POST_MUSICO(formData);
@@ -170,6 +173,9 @@ const MembrosPage = () => {
         })
         .catch((error: Error) => {
           setErrorForm(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
   };
