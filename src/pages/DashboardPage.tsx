@@ -1,4 +1,3 @@
-// src/components/Dashboard.tsx
 import React, { useState } from "react";
 import {
   Calendar,

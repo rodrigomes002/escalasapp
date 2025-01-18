@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -28,207 +28,112 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Musica } from "@/types/Musica";
-import {
-  DELETE_MUSICA,
-  GET_MUSICAS,
-  POST_MUSICA,
-  PUT_MUSICA,
-} from "@/services/ApiMusicas";
-import axios from "axios";
 import PaginationComponent from "@/components/PaginationComponent";
+import { useMusicas } from "@/hooks/useMusicas";
+import { useCreateMusica } from "@/hooks/useCreateMusica";
+import { useUpdateMusica } from "@/hooks/useUpdateMusica";
+import { useDeleteMusica } from "@/hooks/useDeleteMusica";
 
 const RepertorioPage = () => {
-  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [musicas, setMusicas] = useState<Musica[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [errorForm, setErrorForm] = useState<string | null>(null);
-  const [nome, setNome] = useState<string>("");
-  const [nomeBusca, setNomeBusca] = useState<string>("");
+  const [nome, setNome] = useState("");
+  const [nomeBusca, setNomeBusca] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [isUpdate, setIsUpate] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   const [formData, setFormData] = useState<Musica>({
     id: 0,
     nome: "",
     cantor: "",
-    //categoria: "",
     tom: "",
   });
 
-  useEffect(() => {
-    const fetchMusicas = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICAS();
+  const { data, isLoading, error } = useMusicas(currentPage, nomeBusca);
+  const createMutation = useCreateMusica();
+  const updateMutation = useUpdateMusica();
+  const deleteMutation = useDeleteMusica();
 
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
-            id: item.id,
-            nome: item.nome,
-            cantor: item.cantor,
-            tom: item.tom,
-          }));
-
-          setTotalPages(Math.ceil(result.totalCount / 9));
-          setMusicas(musicasArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error: Error) => {
-          setError(error.message);
-        });
-    };
-
-    fetchMusicas();
-  }, [currentPage, nomeBusca]);
-
-  useEffect(() => {
-    const fetchMusicas = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICAS();
-
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
-            id: item.id,
-            nome: item.nome,
-            cantor: item.cantor,
-            tom: item.tom,
-          }));
-
-          setTotalPages(Math.ceil(result.totalCount / 9));
-          setMusicas(musicasArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error: Error) => {
-          setError(error.message);
-        });
-    };
-
-    if (isSuccessRequest) fetchMusicas();
-  }, [currentPage, nomeBusca, isSuccessRequest]);
+  const isLoadingMutation =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
+  const errorMutation = createMutation.error || updateMutation.error;
+  const musicas = data?.items || [];
+  const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorForm(null);
-    setIsLoading(true);
 
     if (!formData.nome || !formData.cantor || !formData.tom) {
-      setErrorForm("Preencha todos os campos");
-      setIsLoading(false);
       return;
     }
 
-    if (isUpdate) {
-      const { url, headers, body } = PUT_MUSICA(
-        formData,
-        formData.id.toString()
-      );
-
-      axios
-        .put(url, body, { headers: headers })
-        .then(() => {
-          setIsSuccessRequest(true);
-          closeDialog();
-          cleanForm();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
+    isUpdate
+      ? updateMutation.mutate(
+          { musica: formData, id: formData.id.toString() },
+          {
+            onSuccess: () => {
+              reset();
+              closeDialog();
+            },
+          }
+        )
+      : createMutation.mutate(formData, {
+          onSuccess: () => {
+            reset();
+            closeDialog();
+          },
         });
-    } else {
-      const { url, headers, body } = POST_MUSICA(formData);
 
-      axios
-        .post(url, body, { headers: headers })
-        .then(() => {
-          setIsSuccessRequest(true);
-          closeDialog();
-          cleanForm();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
-        });
-    }
+    // if (isUpdate) {
+    //   updateMutation.mutate(
+    //     { musica: formData, id: formData.id.toString() },
+    //     {
+    //       onSuccess: () => {
+    //         reset();
+    //         closeDialog();
+    //       },
+    //     }
+    //   );
+    // } else {
+    //   createMutation.mutate(formData, {
+    //     onSuccess: () => {
+    //       reset();
+    //       closeDialog();
+    //     },
+    //   });
+    // }
   };
 
   const editMusica = (musica: Musica) => {
-    openDialog();
-
-    const form = {
-      id: musica.id,
-      nome: musica.nome,
-      cantor: musica.cantor,
-      //categoria: musica.categoria,
-      tom: musica.tom,
-    };
-
-    setFormData(form);
-    setIsUpate(true);
+    setFormData(musica);
+    openDialog(true);
   };
 
-  const deleteMusica = async (id: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { url, headers } = DELETE_MUSICA(id);
-    axios
-      .delete(url, { headers: headers })
-      .then(() => {
-        setIsSuccessRequest(true);
-      })
-      .catch((error: Error) => {
-        setError(error.message);
-      });
-
-    setIsLoading(false);
+  const createMusica = () => {
+    reset();
+    openDialog(false);
   };
 
-  const cleanForm = () => {
-    setFormData({
-      id: 0,
-      nome: "",
-      cantor: "",
-      //categoria: "",
-      tom: "",
-    });
-
-    setIsUpate(false);
-    setErrorForm(null);
+  const reset = () => {
+    setFormData({ id: 0, nome: "", cantor: "", tom: "" });
+    setIsUpdate(false);
   };
 
   const search = () => {
     setNomeBusca(nome);
-    setIsSuccessRequest(true);
   };
 
-  const openDialog = () => setIsOpen(true);
+  const openDialog = (isUpdate: boolean) => {
+    setIsUpdate(isUpdate);
+    setIsOpen(true);
+  };
+
   const closeDialog = () => setIsOpen(false);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
-        <div>
-          <p className="text-muted-foreground">
-            Lista de músicas do repertório
-          </p>
-        </div>
+        <p className="text-muted-foreground">Lista de músicas do repertório</p>
       </div>
 
       {/* Filtros */}
@@ -242,10 +147,13 @@ const RepertorioPage = () => {
             className="pl-9"
           />
         </div>
-        <Button onClick={search} disabled={isLoading}>
+        <Button onClick={search} disabled={isLoading || isLoadingMutation}>
           <Search className="h-4 w-4" />
         </Button>
-        <Button onClick={openDialog} disabled={isLoading}>
+        <Button
+          onClick={createMusica}
+          disabled={isLoading || isLoadingMutation}
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
@@ -253,7 +161,7 @@ const RepertorioPage = () => {
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{(error as Error).message}</AlertDescription>
         </Alert>
       )}
 
@@ -267,41 +175,33 @@ const RepertorioPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {musicas.map((musico) => (
-            <Card key={musico.id} className="hover:shadow-lg transition-shadow">
+          {musicas.map((musica: Musica) => (
+            <Card key={musica.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>{musico.nome}</CardTitle>
-                <CardDescription>{musico.cantor}</CardDescription>
-                <CardDescription>Tom: {musico.tom}</CardDescription>
+                <CardTitle>{musica.nome}</CardTitle>
+                <CardDescription>{musica.cantor}</CardDescription>
+                <CardDescription>Tom: {musica.tom}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button
-                  onClick={() => editMusica(musico)}
-                  disabled={isLoading}
+                  onClick={() => editMusica(musica)}
+                  disabled={isLoadingMutation}
                   className="mr-2"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
+                  {isLoadingMutation ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <>
-                      <Pencil className="h-4 w-4" />
-                    </>
+                    <Pencil className="h-4 w-4" />
                   )}
                 </Button>
                 <Button
-                  onClick={() => deleteMusica(musico.id.toString())}
-                  disabled={isLoading}
+                  onClick={() => deleteMutation.mutate(musica.id.toString())}
+                  disabled={isLoadingMutation}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
+                  {isLoadingMutation ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <>
-                      <Trash className="h-4 w-4" />
-                    </>
+                    <Trash className="h-4 w-4" />
                   )}
                 </Button>
               </CardContent>
@@ -310,12 +210,24 @@ const RepertorioPage = () => {
         </div>
       )}
 
+      {!isLoading && !error && (
+        <div className="flex justify-center">
+          <div>
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
       {!isLoading && !error && musicas.length === 0 && (
         <div className="text-center py-12">
           <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">
-            Nenhum música encontrado
+            Nenhuma música encontrada
           </h3>
           <p className="text-muted-foreground">
             Tente ajustar seus filtros de busca
@@ -323,97 +235,64 @@ const RepertorioPage = () => {
         </div>
       )}
 
-      <PaginationComponent
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      {/* Dialog for adding or updating music */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isUpdate ? "Editar Música" : "Nova Música"}
+            </DialogTitle>
+            <DialogDescription>
+              {isUpdate
+                ? "Edite a música do repertório"
+                : "Adicione uma nova música ao repertório"}
+            </DialogDescription>
+          </DialogHeader>
 
-      <div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nova Música</DialogTitle>
-              <DialogDescription>
-                Adicione uma nova música ao repertório
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="nome" className="text-right">
-                    Nome
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              {["nome", "cantor", "tom"].map((field) => (
+                <div
+                  className="grid grid-cols-4 items-center gap-4"
+                  key={field}
+                >
+                  <Label htmlFor={field} className="text-right">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
                   </Label>
                   <Input
-                    id="nome"
-                    name="nome"
+                    id={field}
+                    name={field}
                     className="col-span-2"
-                    value={formData.nome}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        nome: e.target.value,
-                      });
-                    }}
+                    value={formData[field as keyof Musica]}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field]: e.target.value })
+                    }
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="cantor" className="text-right">
-                    Artista
-                  </Label>
-                  <Input
-                    id="cantor"
-                    name="cantor"
-                    className="col-span-2"
-                    value={formData.cantor}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        cantor: e.target.value,
-                      });
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="tom" className="text-right">
-                    Tom
-                  </Label>
-                  <Input
-                    id="tom"
-                    name="tom"
-                    className="col-span-2"
-                    value={formData.tom}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        tom: e.target.value,
-                      });
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-center">
-                {errorForm && <p className="text-red-500  mb-3">{errorForm}</p>}
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    <>
-                      <Music className="mr-2 h-4 w-4" />
-                      Salvar
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              ))}
+            </div>
+            <div className="flex justify-center">
+              {errorMutation && (
+                <p className="text-red-500 mb-3">
+                  {(errorMutation as Error).message}
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isLoadingMutation}>
+                {isLoadingMutation ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Music className="mr-2 h-4 w-4" />
+                    Salvar
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

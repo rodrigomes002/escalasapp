@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -38,23 +38,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Musico } from "@/types/Musico";
 import { FuncaoEnum } from "@/enums/FuncaoEnum";
-import {
-  DELETE_MUSICO,
-  GET_MUSICOS,
-  POST_MUSICO,
-  PUT_MUSICO,
-} from "@/services/ApiMusicos";
-import axios from "axios";
 import PaginationComponent from "@/components/PaginationComponent";
+import { useMusicos } from "@/hooks/useMusicos";
+import { useCreateMusico } from "@/hooks/useCreateMusico";
+import { useUpdateMusico } from "@/hooks/useUpdateMusico";
+import { useDeleteMusico } from "@/hooks/useDeleteMusico";
 
 const MembrosPage = () => {
-  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [musicos, setMusicos] = useState<Musico[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [errorForm, setErrorForm] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>();
   const [nome, setNome] = useState<string>("");
   const [nomeBusca, setNomeBusca] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
@@ -65,154 +57,62 @@ const MembrosPage = () => {
     funcao: null,
   });
 
-  useEffect(() => {
-    const fetchMusicos = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICOS();
+  const { data, isLoading, error } = useMusicos(currentPage, nomeBusca);
+  const createMutation = useCreateMusico();
+  const updateMutation = useUpdateMusico();
+  const deleteMutation = useDeleteMusico();
 
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
-            id: item.id,
-            nome: item.nome,
-            funcao: item.funcao,
-          }));
-
-          setTotalPages(Math.ceil(result.totalCount / 9));
-          setMusicos(musicosArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setError(error.message);
-        });
-    };
-
-    fetchMusicos();
-  }, [currentPage, nomeBusca]);
-
-  useEffect(() => {
-    const fetchMusicos = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICOS();
-
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: currentPage, pageSize: 9, nome: nomeBusca },
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
-            id: item.id,
-            nome: item.nome,
-            funcao: item.funcao,
-          }));
-
-          setTotalPages(Math.ceil(result.totalCount / 9));
-          setMusicos(musicosArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setError(error.message);
-        });
-    };
-
-    if (isSuccessRequest) fetchMusicos();
-  }, [currentPage, nomeBusca, isSuccessRequest]);
+  const isLoadingMutation =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
+  const errorMutation = createMutation.error || updateMutation.error;
+  const musicos = data?.items || [];
+  const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorForm(null);
-    setIsLoading(true);
 
     if (!formData.nome || !formData.funcao) {
-      setErrorForm("Preencha todos os campos");
-      setIsLoading(false);
+      setErrorMessage("Preencha todos os campos");
       return;
     }
 
-    if (isUpdate) {
-      const { url, headers, body } = PUT_MUSICO(
-        formData,
-        formData.id.toString()
-      );
-
-      axios
-        .put(url, body, { headers: headers })
-        .then(() => {
-          setIsSuccessRequest(true);
-          closeDialog();
-          cleanForm();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
-        })
-        .finally(() => {
-          setIsLoading(false);
+    isUpdate
+      ? updateMutation.mutate(
+          { musico: formData, id: formData.id.toString() },
+          {
+            onSuccess: () => {
+              reset();
+              closeDialog();
+            },
+          }
+        )
+      : createMutation.mutate(formData, {
+          onSuccess: () => {
+            reset();
+            closeDialog();
+          },
         });
-    } else {
-      const { url, headers, body } = POST_MUSICO(formData);
+  };
 
-      axios
-        .post(url, body, { headers: headers })
-        .then(() => {
-          setIsSuccessRequest(true);
-          closeDialog();
-          cleanForm();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
+  const createMusico = () => {
+    reset();
+    openDialog(false);
   };
 
   const editMusico = (musico: Musico) => {
-    openDialog();
-
-    const form = {
+    setFormData({
       id: musico.id,
       nome: musico.nome,
       funcao: Number(musico.funcao),
-    };
+    });
 
-    setFormData(form);
-    setIsUpate(true);
+    setErrorMessage(null);
+    openDialog(true);
   };
 
-  const deleteMusico = async (id: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { url, headers } = DELETE_MUSICO(id);
-
-    axios
-      .delete(url, { headers: headers })
-      .then(() => {
-        setIsSuccessRequest(true);
-      })
-      .catch((error) => {
-        setError(error.message);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  };
-
-  const cleanForm = () => {
+  const reset = () => {
     setFormData({
       id: 0,
       nome: "",
@@ -220,10 +120,14 @@ const MembrosPage = () => {
     });
 
     setIsUpate(false);
-    setErrorForm(null);
+    setErrorMessage(null);
   };
 
-  const openDialog = () => setIsOpen(true);
+  const openDialog = (isUpdate: boolean) => {
+    setIsUpate(isUpdate);
+    setIsOpen(true);
+  };
+
   const closeDialog = () => setIsOpen(false);
 
   const getFuncaoNome = (funcao: FuncaoEnum): string => {
@@ -232,7 +136,6 @@ const MembrosPage = () => {
 
   const search = () => {
     setNomeBusca(nome);
-    setIsSuccessRequest(true);
   };
 
   return (
@@ -240,7 +143,7 @@ const MembrosPage = () => {
       <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
         <div>
           <p className="text-muted-foreground">
-            Lista de músicos e suas funções
+            Lista de membros e suas funções
           </p>
         </div>
       </div>
@@ -256,10 +159,13 @@ const MembrosPage = () => {
             className="pl-9"
           />
         </div>
-        <Button onClick={search} disabled={isLoading}>
+        <Button onClick={search} disabled={isLoading || isLoadingMutation}>
           <Search className="h-4 w-4" />
         </Button>
-        <Button onClick={openDialog} disabled={isLoading}>
+        <Button
+          onClick={createMusico}
+          disabled={isLoading || isLoadingMutation}
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
@@ -267,7 +173,7 @@ const MembrosPage = () => {
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{(error as Error).message}</AlertDescription>
         </Alert>
       )}
 
@@ -281,7 +187,7 @@ const MembrosPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {musicos.map((musico) => (
+          {musicos.map((musico: Musico) => (
             <Card key={musico.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle>{musico.nome}</CardTitle>
@@ -292,32 +198,16 @@ const MembrosPage = () => {
               <CardContent>
                 <Button
                   onClick={() => editMusico(musico)}
-                  disabled={isLoading}
+                  disabled={isLoadingMutation}
                   className="mr-2"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    <>
-                      <Pencil className="h-4 w-4" />
-                    </>
-                  )}
+                  {<Pencil className="h-4 w-4" />}
                 </Button>
                 <Button
-                  onClick={() => deleteMusico(musico.id.toString())}
-                  disabled={isLoading}
+                  onClick={() => deleteMutation.mutate(musico.id.toString())}
+                  disabled={isLoadingMutation}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    </>
-                  ) : (
-                    <>
-                      <Trash className="h-4 w-4" />
-                    </>
-                  )}
+                  {<Trash className="h-4 w-4" />}
                 </Button>
               </CardContent>
             </Card>
@@ -325,11 +215,17 @@ const MembrosPage = () => {
         </div>
       )}
 
-      <PaginationComponent
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      {!isLoading && !error && (
+        <div className="flex justify-center">
+          <div>
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {!isLoading && !error && musicos.length === 0 && (
@@ -348,9 +244,13 @@ const MembrosPage = () => {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Novo Membro</DialogTitle>
+              <DialogTitle>
+                {isUpdate ? "Editar membro" : "Novo membro"}
+              </DialogTitle>
               <DialogDescription>
-                Adicione um novo integrante do ministério de louvor
+                {isUpdate
+                  ? "Altere o nome ou função do membro"
+                  : "Adicione um novo membro"}
               </DialogDescription>
             </DialogHeader>
 
@@ -406,11 +306,18 @@ const MembrosPage = () => {
                 </div>
               </div>
               <div className="flex justify-center">
-                {errorForm && <p className="text-red-500  mb-3">{errorForm}</p>}
+                {errorMessage && (
+                  <p className="text-red-500  mb-3">{errorMessage}</p>
+                )}
+                {errorMutation && (
+                  <p className="text-red-500  mb-3">
+                    {(errorMutation as Error).message}
+                  </p>
+                )}
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
+                <Button type="submit" disabled={isLoadingMutation}>
+                  {isLoadingMutation ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     </>
