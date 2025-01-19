@@ -18,15 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Loader2,
-  Music2,
-  Pencil,
-  Plus,
-  Search,
-  Trash,
-  User,
-} from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Trash, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +35,7 @@ import { useMusicos } from "@/hooks/useMusicos";
 import { useCreateMusico } from "@/hooks/useCreateMusico";
 import { useUpdateMusico } from "@/hooks/useUpdateMusico";
 import { useDeleteMusico } from "@/hooks/useDeleteMusico";
+import { EmptyResult } from "@/components/EmptyResult";
 
 const MembrosPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,7 +146,7 @@ const MembrosPage = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar músicos..."
+            placeholder="Buscar membros..."
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             className="pl-9"
@@ -224,17 +217,7 @@ const MembrosPage = () => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && musicos.length === 0 && (
-        <div className="text-center py-12">
-          <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">
-            Nenhum músico encontrado
-          </h3>
-          <p className="text-muted-foreground">
-            Tente ajustar seus filtros de busca
-          </p>
-        </div>
-      )}
+      {!isLoading && !error && musicos.length === 0 && <EmptyResult />}
 
       <div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
