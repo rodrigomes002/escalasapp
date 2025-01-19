@@ -1,25 +1,27 @@
 import { GET_MUSICAS } from "@/services/ApiMusicas";
-import { FetchParams } from "@/types/FetchParams";
+import { ApiMusicaResponse } from "@/types/ApiMusicaResponse";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
-const fetchMusicas = async ({ pageNumber, pageSize, nome }: FetchParams) => {
-  const { url, headers } = GET_MUSICAS();
-  const params = nome
-    ? { pageNumber, pageSize, nome }
-    : { pageNumber, pageSize };
-  const response = await axios.get(url, { headers, params });
-  return response.data;
-};
-
-export const useMusicas = (pageNumber: number, nome: string) => {
+export const useMusicas = (
+  pageNumber: number,
+  pageSize: number,
+  nome?: string
+) => {
   return useQuery({
-    queryKey: ["musicas", pageNumber, nome],
-    queryFn: () =>
-      fetchMusicas({
-        pageNumber,
-        pageSize: 9,
-        nome,
-      }),
+    queryKey: ["musicas", pageNumber, pageSize, nome],
+    queryFn: async () => {
+      const { url, headers } = GET_MUSICAS();
+      const params = nome
+        ? { pageNumber, pageSize, nome }
+        : { pageNumber, pageSize };
+
+      const response: AxiosResponse<ApiMusicaResponse> = await axios.get(url, {
+        headers,
+        params,
+      });
+
+      return response.data;
+    },
   });
 };

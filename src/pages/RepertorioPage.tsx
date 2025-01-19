@@ -47,7 +47,7 @@ const RepertorioPage = () => {
     tom: "",
   });
 
-  const { data, isLoading, error } = useMusicas(currentPage, nomeBusca);
+  const { data, isLoading, error } = useMusicas(currentPage, 9, nomeBusca);
   const createMutation = useCreateMusica();
   const updateMutation = useUpdateMusica();
   const deleteMutation = useDeleteMusica();
@@ -57,6 +57,7 @@ const RepertorioPage = () => {
     updateMutation.isPending ||
     deleteMutation.isPending;
   const errorMutation = createMutation.error || updateMutation.error;
+
   const musicas = data?.items || [];
   const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
 
@@ -83,25 +84,6 @@ const RepertorioPage = () => {
             closeDialog();
           },
         });
-
-    // if (isUpdate) {
-    //   updateMutation.mutate(
-    //     { musica: formData, id: formData.id.toString() },
-    //     {
-    //       onSuccess: () => {
-    //         reset();
-    //         closeDialog();
-    //       },
-    //     }
-    //   );
-    // } else {
-    //   createMutation.mutate(formData, {
-    //     onSuccess: () => {
-    //       reset();
-    //       closeDialog();
-    //     },
-    //   });
-    // }
   };
 
   const editMusica = (musica: Musica) => {
@@ -210,16 +192,12 @@ const RepertorioPage = () => {
         </div>
       )}
 
-      {!isLoading && !error && (
-        <div className="flex justify-center">
-          <div>
-            <PaginationComponent
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </div>
+      {!isLoading && !error && musicas.length !== 0 && (
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       {/* Empty State */}

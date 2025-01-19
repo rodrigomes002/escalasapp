@@ -57,7 +57,7 @@ const MembrosPage = () => {
     funcao: null,
   });
 
-  const { data, isLoading, error } = useMusicos(currentPage, nomeBusca);
+  const { data, isLoading, error } = useMusicos(currentPage, 9, nomeBusca);
   const createMutation = useCreateMusico();
   const updateMutation = useUpdateMusico();
   const deleteMutation = useDeleteMusico();
@@ -215,16 +215,12 @@ const MembrosPage = () => {
         </div>
       )}
 
-      {!isLoading && !error && (
-        <div className="flex justify-center">
-          <div>
-            <PaginationComponent
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </div>
+      {!isLoading && !error && musicos.length !== 0 && (
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       {/* Empty State */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,13 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Escala } from "@/types/Escala";
 import { EscalaCard } from "@/components/EscalaCard";
 import { format } from "date-fns";
-import {
-  DELETE_ESCALA,
-  GET_ESCALAS,
-  POST_ESCALA,
-  PUT_ESCALA,
-} from "@/services/ApiEscalas";
-import axios from "axios";
 import { Musica } from "@/types/Musica";
 import { Musico } from "@/types/Musico";
 import { FormEscala } from "@/types/FormEscala";
@@ -32,21 +25,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FuncaoEnum } from "@/enums/FuncaoEnum";
-import { GET_MUSICOS } from "@/services/ApiMusicos";
-import { GET_MUSICAS } from "@/services/ApiMusicas";
+import { useEscalas } from "@/hooks/useEscalas";
+import { useCreateEscala } from "@/hooks/useCreateEscala";
+import { useUpdateEscala } from "@/hooks/useUpdateEscala";
+import { useDeleteEscala } from "@/hooks/useDeleteEscala";
+import { useMusicas } from "@/hooks/useMusicas";
+import { useMusicos } from "@/hooks/useMusicos";
 
 const EscalasPage = () => {
-  const [isSuccessRequest, setIsSuccessRequest] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [vocal, setVocal] = useState<Musico[]>([]);
-  const [instrumental, setInstrumental] = useState<Musico[]>([]);
   const [selectedVocal, setSelectedVocal] = useState<Musico>();
   const [selectedVocals, setSelectedVocals] = useState<Musico[]>([]);
   const [selectedInstrumental, setSelectedInstrumental] = useState<Musico>();
   const [selectedInstrumentals, setSelectedInstrumentals] = useState<Musico[]>(
     []
   );
-  const [musicas, setMusica] = useState<Musica[]>([]);
   const [selectedMusicaManha, setSelectedMusicaManha] = useState<Musica>();
   const [selectedMusicasManha, setSelectedMusicasManha] = useState<Musica[]>(
     []
@@ -55,10 +48,7 @@ const EscalasPage = () => {
   const [selectedMusicasNoite, setSelectedMusicasNoite] = useState<Musica[]>(
     []
   );
-  const [escalas, setEscalas] = useState<Escala[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [errorForm, setErrorForm] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>();
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdate, setIsUpdate] = useState(false);
   const [formData, setFormData] = useState<FormEscala>({
@@ -70,8 +60,32 @@ const EscalasPage = () => {
     musicasNoite: [],
   });
 
+  const { data: escalaData, isLoading, error } = useEscalas();
+  const { data: musicaData } = useMusicas(1, 999, "");
+  const { data: musicoData } = useMusicos(1, 999, "");
+
+  const createMutation = useCreateEscala();
+  const updateMutation = useUpdateEscala();
+  const deleteMutation = useDeleteEscala();
+
+  const isLoadingMutation =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
+  const errorMutation = createMutation.error || updateMutation.error;
+
+  const escalas = (escalaData as Escala[] | undefined) || [];
+  const musicas = musicaData?.items || [];
+
+  const vocal =
+    musicoData?.items.filter((m: Musico) => m.funcao === FuncaoEnum.Vocal) ||
+    [];
+  const instrumental =
+    musicoData?.items.filter((m: Musico) => m.funcao !== FuncaoEnum.Vocal) ||
+    [];
+
   const openDialog = (isUpdate: boolean) => {
-    if (!isUpdate) cleanForm();
+    if (!isUpdate) reset();
 
     setIsUpdate(isUpdate);
     setIsOpen(true);
@@ -89,93 +103,52 @@ const EscalasPage = () => {
     };
 
     if (selectedMusicasNoite.length < 3 && currentStep == 5) {
-      setErrorForm("Selecione pelo menos 3 músicas");
+      setErrorMessage("Selecione pelo menos 3 músicas");
       return;
     }
 
-    setErrorForm(null);
-    setIsLoading(true);
-
-    if (isUpdate) {
-      const { url, headers, body } = PUT_ESCALA(
-        finalFormData,
-        finalFormData.id.toString()
-      );
-
-      axios
-        .put(url, body, { headers: headers })
-        .then(() => {
-          cleanForm();
-          setIsSuccessRequest(true);
-          closeDialog();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
-        })
-        .finally(() => {
-          setIsLoading(false);
+    isUpdate
+      ? updateMutation.mutate(
+          { escala: finalFormData, id: formData.id.toString() },
+          {
+            onSuccess: () => {
+              reset();
+              closeDialog();
+            },
+          }
+        )
+      : createMutation.mutate(finalFormData, {
+          onSuccess: () => {
+            reset();
+            closeDialog();
+          },
         });
-    } else {
-      const { url, headers, body } = POST_ESCALA(finalFormData);
-
-      axios
-        .post(url, body, { headers: headers })
-        .then(() => {
-          cleanForm();
-          setIsSuccessRequest(true);
-          closeDialog();
-        })
-        .catch((error: Error) => {
-          setErrorForm(error.message);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
   };
 
   const editEscala = (escala: Escala) => {
-    openDialog(true);
-
     setSelectedInstrumentals(escala.instrumental);
     setSelectedVocals(escala.vocal);
     setSelectedMusicasManha(escala.musicasManha);
     setSelectedMusicasNoite(escala.musicasNoite);
 
-    const finalFormData = {
+    setFormData({
       id: escala.id,
       data: format(escala.data, "yyyy-MM-dd"),
       vocal: selectedVocals,
       instrumental: selectedInstrumentals,
       musicasManha: selectedMusicasManha,
       musicasNoite: selectedMusicasNoite,
-    };
+    });
 
-    setFormData(finalFormData);
-    setIsUpdate(true);
+    setErrorMessage(null);
+    openDialog(true);
   };
 
   const deleteEscala = (escala: Escala) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { url, headers } = DELETE_ESCALA(escala.id.toString());
-
-    axios
-      .delete(url, { headers: headers })
-      .then(() => {
-        cleanForm();
-        setIsSuccessRequest(true);
-      })
-      .catch((error) => {
-        setError(error.message);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    deleteMutation.mutate(escala.id.toString());
   };
 
-  const cleanForm = () => {
+  const reset = () => {
     setCurrentStep(1);
     setSelectedInstrumentals([]);
     setSelectedVocals([]);
@@ -192,137 +165,11 @@ const EscalasPage = () => {
     });
 
     setIsUpdate(false);
-    setErrorForm(null);
+    setErrorMessage(null);
   };
 
-  useEffect(() => {
-    const fetchEscalas = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_ESCALAS();
-
-      axios
-        .get(url, {
-          headers: headers,
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const escalasArray: Escala[] = result.map((item: Escala) => ({
-            id: item.id,
-            data: item.data,
-            instrumental: item.instrumental,
-            vocal: item.vocal,
-            musicasManha: item.musicasManha,
-            musicasNoite: item.musicasNoite,
-          }));
-
-          setEscalas(escalasArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setError(error.message);
-        });
-    };
-
-    if (isSuccessRequest) fetchEscalas();
-  }, [isSuccessRequest]);
-
-  useEffect(() => {
-    const fetchEscalas = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_ESCALAS();
-
-      axios
-        .get(url, {
-          headers: headers,
-        })
-        .then((response) => {
-          const result = response.data;
-
-          const escalasArray: Escala[] = result.map((item: Escala) => ({
-            id: item.id,
-            data: item.data,
-            instrumental: item.instrumental,
-            vocal: item.vocal,
-            musicasManha: item.musicasManha,
-            musicasNoite: item.musicasNoite,
-          }));
-
-          setEscalas(escalasArray);
-          cleanForm();
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setError(error.message);
-        });
-    };
-
-    const fetchMusicos = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICOS();
-
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: 1, pageSize: 999 },
-        })
-        .then((response) => {
-          const result = response.data;
-          const musicosArray: Musico[] = result.items.map((item: Musico) => ({
-            id: item.id,
-            nome: item.nome,
-            funcao: item.funcao,
-          }));
-
-          setVocal(musicosArray.filter((m) => m.funcao === FuncaoEnum.Vocal));
-          setInstrumental(
-            musicosArray.filter((m) => m.funcao !== FuncaoEnum.Vocal)
-          );
-          setIsLoading(false);
-        })
-        .catch((error: Error) => {
-          setError(error.message);
-        });
-    };
-
-    const fetchMusicas = () => {
-      setIsLoading(true);
-      setError(null);
-      const { url, headers } = GET_MUSICAS();
-
-      axios
-        .get(url, {
-          headers: headers,
-          params: { pageNumber: 1, pageSize: 999 },
-        })
-        .then((response) => {
-          const result = response.data;
-          const musicasArray: Musica[] = result.items.map((item: Musica) => ({
-            id: item.id,
-            nome: item.nome,
-            cantor: item.cantor,
-            tom: item.tom,
-          }));
-
-          setMusica(musicasArray);
-          setIsLoading(false);
-        })
-        .catch((error: Error) => {
-          setError(error.message);
-        });
-    };
-
-    fetchMusicos();
-    fetchMusicas();
-    fetchEscalas();
-  }, []);
-
   const handleDate = (value: string) => {
-    setErrorForm(null);
+    setErrorMessage(null);
     setFormData({ ...formData, data: value });
   };
 
@@ -352,7 +199,7 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
-            {vocal.map((musico) => (
+            {vocal.map((musico: Musico) => (
               <SelectItem
                 key={musico.id}
                 value={musico.id.toString()}
@@ -410,13 +257,13 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
-            {instrumental.map((musico) => (
+            {instrumental.map((musico: Musico) => (
               <SelectItem
                 key={musico.id}
                 value={musico.id.toString()}
                 disabled={selectedInstrumentals.some((p) => p.id === musico.id)}
               >
-                {musico.nome}
+                {musico.nome} - {getFuncaoNome(musico.funcao)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -468,7 +315,7 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione uma música" />
           </SelectTrigger>
           <SelectContent>
-            {musicas.map((musica) => (
+            {musicas.map((musica: Musica) => (
               <SelectItem
                 key={musica.id}
                 value={musica.id.toString()}
@@ -579,26 +426,26 @@ const EscalasPage = () => {
   // Navigation functions
   const nextStep = () => {
     if (!formData.data && currentStep == 1) {
-      setErrorForm("Preencha uma data");
+      setErrorMessage("Preencha uma data");
       return;
     }
 
     if (selectedVocals.length < 2 && currentStep == 2) {
-      setErrorForm("Selecione pelo menos 2 pessoas para o vocal");
+      setErrorMessage("Selecione pelo menos 2 pessoas para o vocal");
       return;
     }
 
     if (selectedInstrumentals.length < 3 && currentStep == 3) {
-      setErrorForm("Selecione pelo menos 3 pessoas para o instrumental");
+      setErrorMessage("Selecione pelo menos 3 pessoas para o instrumental");
       return;
     }
 
     if (selectedMusicasManha.length < 3 && currentStep == 4) {
-      setErrorForm("Selecione pelo menos 3 músicas");
+      setErrorMessage("Selecione pelo menos 3 músicas");
       return;
     }
 
-    setErrorForm(null);
+    setErrorMessage(null);
 
     if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
@@ -609,8 +456,8 @@ const EscalasPage = () => {
 
   // Re-use existing handler functions
   const handleSelectVocal = (musicoId: string) => {
-    setErrorForm(null);
-    const musico = vocal.find((p) => p.id.toString() === musicoId);
+    setErrorMessage(null);
+    const musico = vocal.find((p: Musico) => p.id.toString() === musicoId);
     if (musico && !selectedVocals.find((p) => p.id.toString() === musicoId)) {
       setSelectedVocals([...selectedVocals, musico]);
       setSelectedVocal(musico);
@@ -624,8 +471,10 @@ const EscalasPage = () => {
   };
 
   const handleSelectedInstrumental = (musicoId: string) => {
-    setErrorForm(null);
-    const musico = instrumental.find((p) => p.id.toString() === musicoId);
+    setErrorMessage(null);
+    const musico = instrumental.find(
+      (p: Musico) => p.id.toString() === musicoId
+    );
     if (
       musico &&
       !selectedInstrumentals.find((p) => p.id.toString() === musicoId)
@@ -642,7 +491,7 @@ const EscalasPage = () => {
   };
 
   const handleSelectMusicasManha = (musicaId: string) => {
-    setErrorForm(null);
+    setErrorMessage(null);
     const musica = musicas.find((p) => p.id.toString() === musicaId);
     if (
       musica &&
@@ -660,7 +509,7 @@ const EscalasPage = () => {
   };
 
   const handleSelectMusicasNoite = (musicaId: string) => {
-    setErrorForm(null);
+    setErrorMessage(null);
     const musica = musicas.find((p) => p.id.toString() === musicaId);
     if (
       musica &&
@@ -725,7 +574,7 @@ const EscalasPage = () => {
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{(error as Error).message}</AlertDescription>
         </Alert>
       )}
 
@@ -739,10 +588,11 @@ const EscalasPage = () => {
       {/* Musicians Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {escalas.map((escala) => (
+          {escalas.map((escala: Escala) => (
             <EscalaCard
+              key={escala.id}
               escala={escala}
-              isLoading={isLoading}
+              isLoading={isLoading || isLoadingMutation}
               editEscala={editEscala}
               deleteEscala={deleteEscala}
             />
@@ -783,7 +633,14 @@ const EscalasPage = () => {
             {currentStep === 5 && <NightSongsStep />}
 
             <div className="flex justify-center">
-              {errorForm && <p className="text-red-500 mt-3">{errorForm}</p>}
+              {errorMessage && (
+                <p className="text-red-500  mb-3">{errorMessage}</p>
+              )}
+              {errorMutation && (
+                <p className="text-red-500 mt-3">
+                  {(errorMutation as Error).message}
+                </p>
+              )}
             </div>
 
             {/* Navigation Buttons */}
