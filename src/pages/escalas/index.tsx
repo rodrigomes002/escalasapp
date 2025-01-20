@@ -24,13 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FuncaoEnum } from "@/enums/FuncaoEnum";
-import { useEscalas } from "@/hooks/useEscalas";
-import { useCreateEscala } from "@/hooks/useCreateEscala";
-import { useUpdateEscala } from "@/hooks/useUpdateEscala";
-import { useDeleteEscala } from "@/hooks/useDeleteEscala";
-import { useMusicas } from "@/hooks/useMusicas";
-import { useMusicos } from "@/hooks/useMusicos";
+import { FuncaoEnum } from "@/enums/funcao-enum";
+import { useEscalas } from "@/hooks/use-escalas";
+import { useCreateEscala } from "@/hooks/use-create-escala";
+import { useUpdateEscala } from "@/hooks/use-update-escala";
+import { useDeleteEscala } from "@/hooks/use-delete-escala";
+import { useMusicas } from "@/hooks/use-musicas";
+import { useMusicos } from "@/hooks/use-musicos";
 
 const EscalasPage = () => {
   const [currentStep, setCurrentStep] = useState(1);

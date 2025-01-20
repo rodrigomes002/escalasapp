@@ -1,4 +1,4 @@
-import { FuncaoEnum } from "@/enums/FuncaoEnum";
+import { FuncaoEnum } from "@/enums/funcao-enum";
 
 export interface Musico {
   id: number;

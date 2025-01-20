@@ -23,15 +23,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Musico } from "@/types/Musico";
-import { FuncaoEnum } from "@/enums/FuncaoEnum";
-import PaginationComponent from "@/components/shared/pagination-ui";
-import { useMusicos } from "@/hooks/useMusicos";
-import { useCreateMusico } from "@/hooks/useCreateMusico";
-import { useUpdateMusico } from "@/hooks/useUpdateMusico";
-import { useDeleteMusico } from "@/hooks/useDeleteMusico";
+import { FuncaoEnum } from "@/enums/funcao-enum";
+import { useMusicos } from "@/hooks/use-musicos";
+import { useCreateMusico } from "@/hooks/use-create-musico";
+import { useUpdateMusico } from "@/hooks/use-update-musico";
+import { useDeleteMusico } from "@/hooks/use-delete-musico";
 import { EmptyResult } from "@/components/shared/empty-result";
 import { CellAction } from "./components/cell-action";
 import PageHead from "@/components/shared/page-head";
+import PaginationUI from "@/components/shared/pagination-ui";
 
 const MembrosPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,7 +46,7 @@ const MembrosPage = () => {
     funcao: null,
   });
 
-  const { data, isLoading, error } = useMusicos(currentPage, 9, nomeBusca);
+  const { data, isLoading, error } = useMusicos(currentPage, 6, nomeBusca);
   const createMutation = useCreateMusico();
   const updateMutation = useUpdateMusico();
   const deleteMutation = useDeleteMusico();
@@ -57,7 +57,7 @@ const MembrosPage = () => {
     deleteMutation.isPending;
   const errorMutation = createMutation.error || updateMutation.error;
   const musicos = data?.items || [];
-  const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
+  const totalPages = data ? Math.ceil(data.totalCount / 6) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +133,7 @@ const MembrosPage = () => {
 
   return (
     <>
-      <PageHead title="Escalas | App" />
+      <PageHead title="Membros | App" />
       <div className="max-h-screen flex-1 space-y-4 overflow-y-auto p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
           <p className="text-muted-foreground text-xl mb-2">
@@ -142,7 +142,7 @@ const MembrosPage = () => {
         </div>
 
         {/* Filtros */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -179,7 +179,7 @@ const MembrosPage = () => {
 
         {/* Musicians Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {musicos.map((musico: Musico) => (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -201,7 +201,7 @@ const MembrosPage = () => {
         )}
 
         {!isLoading && !error && musicos.length !== 0 && (
-          <PaginationComponent
+          <PaginationUI
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
