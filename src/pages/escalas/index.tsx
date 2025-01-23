@@ -534,7 +534,7 @@ const EscalasPage = () => {
 
   return (
     <>
-      <div className="max-h-screen flex-1 space-y-4 overflow-y-auto p-4 pt-6 md:p-8">
+      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
         <p className="text-muted-foreground  text-xl mb-2">
           Lista de escalas agendadas
         </p>

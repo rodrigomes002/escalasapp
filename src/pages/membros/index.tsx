@@ -46,7 +46,7 @@ const MembrosPage = () => {
     funcao: null,
   });
 
-  const { data, isLoading, error } = useMusicos(currentPage, 6, nomeBusca);
+  const { data, isLoading, error } = useMusicos(currentPage, 9, nomeBusca);
   const createMutation = useCreateMusico();
   const updateMutation = useUpdateMusico();
   const deleteMutation = useDeleteMusico();
@@ -57,7 +57,7 @@ const MembrosPage = () => {
     deleteMutation.isPending;
   const errorMutation = createMutation.error || updateMutation.error;
   const musicos = data?.items || [];
-  const totalPages = data ? Math.ceil(data.totalCount / 6) : 0;
+  const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +134,7 @@ const MembrosPage = () => {
   return (
     <>
       <PageHead title="Membros | App" />
-      <div className="max-h-screen flex-1 space-y-4 overflow-y-auto p-4 pt-6 md:p-8">
+      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
           <p className="text-muted-foreground text-xl mb-2">
             Lista de membros e suas funções
@@ -163,23 +163,9 @@ const MembrosPage = () => {
           </Button>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{(error as Error).message}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-
         {/* Musicians Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {musicos.map((musico: Musico) => (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -211,100 +197,112 @@ const MembrosPage = () => {
         {/* Empty State */}
         {!isLoading && !error && musicos.length === 0 && <EmptyResult />}
 
-        <div>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {isUpdate ? "Editar membro" : "Novo membro"}
-                </DialogTitle>
-                <DialogDescription>
-                  {isUpdate
-                    ? "Altere o nome ou função do membro"
-                    : "Adicione um novo membro"}
-                </DialogDescription>
-              </DialogHeader>
+        {/* Error Message */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{(error as Error).message}</AlertDescription>
+          </Alert>
+        )}
 
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="nome" className="text-right">
-                      Nome
-                    </Label>
-                    <Input
-                      id="nome"
-                      name="nome"
-                      className="col-span-2"
-                      value={formData.nome}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          nome: e.target.value,
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="funcao" className="text-right">
-                      Função
-                    </Label>
-                    <Select
-                      name="funcao"
-                      value={formData.funcao?.toString()}
-                      onValueChange={(valor) =>
-                        setFormData({
-                          ...formData,
-                          funcao: Number(valor),
-                        })
-                      }
-                    >
-                      <SelectTrigger className="col-span-2">
-                        <SelectValue placeholder="Selecione a função" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Funções</SelectLabel>
-                          {Object.entries(FuncaoEnum)
-                            .filter(([key]) => isNaN(Number(key))) // Filtra apenas as chaves string do enum
-                            .map(([key, value]) => (
-                              <SelectItem key={value} value={value.toString()}>
-                                {key}
-                              </SelectItem>
-                            ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex justify-center">
-                  {errorMessage && (
-                    <p className="text-red-500  mb-3">{errorMessage}</p>
-                  )}
-                  {errorMutation && (
-                    <p className="text-red-500  mb-3">
-                      {(errorMutation as Error).message}
-                    </p>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={isLoadingMutation}>
-                    {isLoadingMutation ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      </>
-                    ) : (
-                      <>
-                        <User className="mr-2 h-4 w-4" />
-                        Salvar
-                      </>
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
       </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isUpdate ? "Editar membro" : "Novo membro"}
+            </DialogTitle>
+            <DialogDescription>
+              {isUpdate
+                ? "Altere o nome ou função do membro"
+                : "Adicione um novo membro"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="nome" className="text-right">
+                  Nome
+                </Label>
+                <Input
+                  id="nome"
+                  name="nome"
+                  className="col-span-2"
+                  value={formData.nome}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      nome: e.target.value,
+                    });
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="funcao" className="text-right">
+                  Função
+                </Label>
+                <Select
+                  name="funcao"
+                  value={formData.funcao?.toString()}
+                  onValueChange={(valor) =>
+                    setFormData({
+                      ...formData,
+                      funcao: Number(valor),
+                    })
+                  }
+                >
+                  <SelectTrigger className="col-span-2">
+                    <SelectValue placeholder="Selecione a função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Funções</SelectLabel>
+                      {Object.entries(FuncaoEnum)
+                        .filter(([key]) => isNaN(Number(key))) // Filtra apenas as chaves string do enum
+                        .map(([key, value]) => (
+                          <SelectItem key={value} value={value.toString()}>
+                            {key}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              {errorMessage && (
+                <p className="text-red-500  mb-3">{errorMessage}</p>
+              )}
+              {errorMutation && (
+                <p className="text-red-500  mb-3">
+                  {(errorMutation as Error).message}
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isLoadingMutation}>
+                {isLoadingMutation ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    <User className="mr-2 h-4 w-4" />
+                    Salvar
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

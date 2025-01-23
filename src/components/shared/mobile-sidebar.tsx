@@ -1,7 +1,6 @@
 import DashboardNav from "@/components/shared/dashboard-nav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { navItems } from "@/constants/data";
-import { Music2 } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { Link } from "react-router-dom";
 
@@ -21,7 +20,7 @@ export default function MobileSidebar({
           <div className="space-y-4 py-4">
             <div className="space-y-4 px-3 py-2">
               <Link to="/" className="px-2 py-2 text-2xl font-bold text-white ">
-                <Music2 />
+                <h1 className="text-2xl font-bold">Escalas</h1>
               </Link>
               <div className="space-y-1 px-2">
                 <DashboardNav items={navItems} setOpen={setSidebarOpen} />
