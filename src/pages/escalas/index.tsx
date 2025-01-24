@@ -32,7 +32,7 @@ import { useMusicas } from "@/hooks/use-musicas";
 import { useMusicos } from "@/hooks/use-musicos";
 import PageHead from "@/components/shared/page-head";
 import { months } from "@/constants/data";
-import { DatePicker } from "@/components/shared/date-picker";
+import { DateStep } from "./components/date-step";
 
 const EscalasPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -180,21 +180,6 @@ const EscalasPage = () => {
       data: formattedDate,
     });
   };
-
-  const DateStep = () => (
-    <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="data">Dia do culto</Label>
-        <DatePicker
-          initialDate={formData.data}
-          onDateSelect={(selectedDate) =>
-            selectedDate ? handleDate(selectedDate) : ""
-          }
-          placeholder="Selecione a data"
-        />
-      </div>
-    </div>
-  );
 
   const VocalStep = () => (
     <div className="grid gap-4">
@@ -539,7 +524,7 @@ const EscalasPage = () => {
   return (
     <>
       <PageHead title="Escalas | App" />
-      <div className="max-h-screen overflow-y-auto flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">
             Escalas de {currentMonth}
@@ -569,7 +554,7 @@ const EscalasPage = () => {
 
           {/* Musicians Grid */}
           {!isLoading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
               {escalas.map((escala: Escala) => (
                 <EscalaCard
                   key={escala.id}
@@ -608,7 +593,9 @@ const EscalasPage = () => {
                 </DialogHeader>
 
                 {/* Step Content */}
-                {currentStep === 1 && <DateStep />}
+                {currentStep === 1 && (
+                  <DateStep formData={formData} handleDate={handleDate} />
+                )}
                 {currentStep === 2 && <VocalStep />}
                 {currentStep === 3 && <InstrumentalStep />}
                 {currentStep === 4 && <MorningSongsStep />}

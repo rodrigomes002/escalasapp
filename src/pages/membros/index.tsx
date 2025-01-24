@@ -165,7 +165,7 @@ const MembrosPage = () => {
 
         {/* Musicians Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-1">
             {musicos.map((musico: Musico) => (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
