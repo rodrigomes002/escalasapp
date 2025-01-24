@@ -1,4 +1,4 @@
-import { Music, Mic, Users, Loader2, Pencil, Trash } from "lucide-react";
+import { Music, Mic, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,73 +6,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
 import { Escala } from "@/types/Escala";
+import { CellAction } from "@/pages/membros/components/cell-action";
 
 export const EscalaCard = ({
   escala,
-  isLoading,
+  loading,
   editEscala,
   deleteEscala,
 }: {
   escala: Escala;
-  isLoading: boolean;
+  loading: boolean;
   editEscala: (escala: Escala) => void;
   deleteEscala: (escala: Escala) => void;
 }) => {
   const formatarData = (data: string) => {
     return new Date(data).toLocaleDateString("pt-BR", {
       day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
     });
   };
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold capitalize">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">{formatarData(escala.data)}</div>
-
-              <div className="space-y-2">
-                <div className="ml-4">
-                  <Button
-                    onClick={() => editEscala(escala)}
-                    disabled={isLoading}
-                    className="mr-2"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      </>
-                    ) : (
-                      <>
-                        <Pencil className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={() => deleteEscala(escala)}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      </>
-                    ) : (
-                      <>
-                        <Trash className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <CardTitle className="text-2xl font-bold capitalize flex flex-row items-center justify-between space-y-0 pb-2">
+          Dia - {formatarData(escala.data)}
+          <CellAction
+            item={escala}
+            loading={loading}
+            editItem={editEscala}
+            deleteItem={deleteEscala}
+          ></CellAction>
         </CardTitle>
+
         <CardDescription>Escala de Louvor</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -117,38 +83,38 @@ export const EscalaCard = ({
         </div>
 
         {/* Repertório */}
-        <div className="space-y-4">
-          <div className="border-b pb-2">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Music className="h-5 w-5" />
-              Repertório
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            {/* Músicas Manhã */}
-            <div className="space-y-2">
-              <h4 className="font-medium">Manhã</h4>
-              <ul className="space-y-1">
-                {escala.musicasManha.map((musica, index) => (
-                  <li key={`${musica.id}-${index}`} className="text-sm">
-                    {index + 1}. {musica.nome}
-                  </li>
-                ))}
-              </ul>
+        {escala.musicasManha.length > 0 && escala.musicasNoite.length > 0 && (
+          <div className="space-y-4">
+            <div className="border-b pb-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Music className="h-5 w-5" />
+                Repertório
+              </h3>
             </div>
-            {/* Músicas Noite */}
-            <div className="space-y-2">
-              <h4 className="font-medium">Noite</h4>
-              <ul className="space-y-1">
-                {escala.musicasNoite.map((musica, index) => (
-                  <li key={`${musica.id}-${index}`} className="text-sm">
-                    {index + 1}. {musica.nome}
-                  </li>
-                ))}
-              </ul>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <h4 className="font-medium">Manhã</h4>
+                <ul className="space-y-1">
+                  {escala.musicasManha.map((musica, index) => (
+                    <li key={`${musica.id}-${index}`} className="text-sm">
+                      {index + 1}. {musica.nome}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Noite</h4>
+                <ul className="space-y-1">
+                  {escala.musicasNoite.map((musica, index) => (
+                    <li key={`${musica.id}-${index}`} className="text-sm">
+                      {index + 1}. {musica.nome}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

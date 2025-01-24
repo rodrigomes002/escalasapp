@@ -12,16 +12,17 @@ import { useState } from "react";
 
 interface CellActionProps<T> {
   item: T;
+  loading: boolean;
   editItem: (item: T) => void;
   deleteItem: (item: T) => void;
 }
 
 export const CellAction = <T,>({
   item,
+  loading,
   editItem,
   deleteItem,
 }: CellActionProps<T>) => {
-  const [loading] = useState(false);
   const [open, setOpen] = useState(false);
 
   const onConfirm = async () => {

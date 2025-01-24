@@ -170,7 +170,9 @@ const RepertorioPage = () => {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle>{musica.nome}</CardTitle>
                   <CellAction
+                    key={musica.id.toString()}
                     item={musica}
+                    loading={isLoadingMutation}
                     editItem={editMusica}
                     deleteItem={deleteMusica}
                   ></CellAction>
