@@ -37,7 +37,7 @@ const RepertorioPage = () => {
     tom: "",
   });
 
-  const { data, isLoading, error } = useMusicas(currentPage, 9, nomeBusca);
+  const { data, isLoading, error } = useMusicas(currentPage, 20, nomeBusca);
   const createMutation = useCreateMusica();
   const updateMutation = useUpdateMusica();
   const deleteMutation = useDeleteMusica();
@@ -48,7 +48,7 @@ const RepertorioPage = () => {
     deleteMutation.isPending;
   const errorMutation = createMutation.error || updateMutation.error;
   const musicas = data?.items || [];
-  const totalPages = data ? Math.ceil(data.totalCount / 9) : 0;
+  const totalPages = data ? Math.ceil(data.totalCount / 20) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +117,7 @@ const RepertorioPage = () => {
   return (
     <>
       <PageHead title="Repertório | App" />
-      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="max-h-screen overflow-y-auto flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
           <div>
             <p className="text-muted-foreground text-xl mb-2">
@@ -164,7 +164,7 @@ const RepertorioPage = () => {
 
         {/* Musicians Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {musicas.map((musica: Musica) => (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

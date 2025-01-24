@@ -134,7 +134,7 @@ const MembrosPage = () => {
   return (
     <>
       <PageHead title="Membros | App" />
-      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="max-h-screen overflow-y-auto flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
           <p className="text-muted-foreground text-xl mb-2">
             Lista de membros e suas funções
@@ -165,7 +165,7 @@ const MembrosPage = () => {
 
         {/* Musicians Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {musicos.map((musico: Musico) => (
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

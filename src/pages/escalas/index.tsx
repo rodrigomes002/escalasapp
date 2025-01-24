@@ -229,7 +229,7 @@ const EscalasPage = () => {
               selectedVocals.map((musico, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                  className="flex items-center justify-between p-2 rounded-lg"
                 >
                   <div>
                     <p className="font-medium">{musico.nome}</p>
@@ -287,7 +287,7 @@ const EscalasPage = () => {
               selectedInstrumentals.map((musico, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                  className="flex items-center justify-between p-2 rounded-lg"
                 >
                   <div>
                     <p className="font-medium">{musico.nome}</p>
@@ -347,7 +347,7 @@ const EscalasPage = () => {
               selectedMusicasManha.map((musica, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                  className="flex items-center justify-between p-2 rounded-lg"
                 >
                   <div>
                     <p className="font-medium">{musica.nome}</p>
@@ -407,7 +407,7 @@ const EscalasPage = () => {
               selectedMusicasNoite.map((musica, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+                  className="flex items-center justify-between p-2 rounded-lg"
                 >
                   <div>
                     <p className="font-medium">{musica.nome}</p>
@@ -539,7 +539,7 @@ const EscalasPage = () => {
   return (
     <>
       <PageHead title="Escalas | App" />
-      <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="max-h-screen overflow-y-auto flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">
             Escalas de {currentMonth}
@@ -569,7 +569,7 @@ const EscalasPage = () => {
 
           {/* Musicians Grid */}
           {!isLoading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {escalas.map((escala: Escala) => (
                 <EscalaCard
                   key={escala.id}
