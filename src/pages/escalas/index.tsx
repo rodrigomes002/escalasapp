@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, ArrowRight, Loader2, Music2, Plus, X } from "lucide-react";
@@ -31,6 +30,9 @@ import { useUpdateEscala } from "@/hooks/use-update-escala";
 import { useDeleteEscala } from "@/hooks/use-delete-escala";
 import { useMusicas } from "@/hooks/use-musicas";
 import { useMusicos } from "@/hooks/use-musicos";
+import PageHead from "@/components/shared/page-head";
+import { months } from "@/constants/data";
+import { DatePicker } from "@/components/shared/date-picker";
 
 const EscalasPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -60,6 +62,7 @@ const EscalasPage = () => {
     musicasNoite: [],
   });
 
+  const currentMonth = months[new Date().getMonth()];
   const { data: escalaData, isLoading, error } = useEscalas();
   const { data: musicaData } = useMusicas(1, 999, "");
   const { data: musicoData } = useMusicos(1, 999, "");
@@ -101,11 +104,6 @@ const EscalasPage = () => {
       musicasManha: selectedMusicasManha,
       musicasNoite: selectedMusicasNoite,
     };
-
-    if (selectedMusicasNoite.length < 3 && currentStep == 5) {
-      setErrorMessage("Selecione pelo menos 3 músicas");
-      return;
-    }
 
     isUpdate
       ? updateMutation.mutate(
@@ -170,18 +168,29 @@ const EscalasPage = () => {
 
   const handleDate = (value: string) => {
     setErrorMessage(null);
-    setFormData({ ...formData, data: value });
+
+    const [day, month, year] = value.split("/");
+    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+      2,
+      "0"
+    )}`;
+
+    setFormData({
+      ...formData,
+      data: formattedDate,
+    });
   };
 
   const DateStep = () => (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="data">Data do culto</Label>
-        <Input
-          id="data"
-          type="date"
-          value={formData.data}
-          onChange={(e) => handleDate(e.target.value)}
+        <Label htmlFor="data">Dia do culto</Label>
+        <DatePicker
+          initialDate={formData.data}
+          onDateSelect={(selectedDate) =>
+            selectedDate ? handleDate(selectedDate) : ""
+          }
+          placeholder="Selecione a data"
         />
       </div>
     </div>
@@ -199,9 +208,9 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
-            {vocal.map((musico: Musico) => (
+            {vocal.map((musico: Musico, index: string) => (
               <SelectItem
-                key={musico.id}
+                key={index}
                 value={musico.id.toString()}
                 disabled={selectedVocals.some((p) => p.id === musico.id)}
               >
@@ -217,9 +226,9 @@ const EscalasPage = () => {
             {selectedVocals.length === 0 ? (
               <p className="text-sm text-gray-500">Ninguém selecionado</p>
             ) : (
-              selectedVocals.map((musico) => (
+              selectedVocals.map((musico, index) => (
                 <div
-                  key={musico.id}
+                  key={index}
                   className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                 >
                   <div>
@@ -257,9 +266,9 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione" />
           </SelectTrigger>
           <SelectContent>
-            {instrumental.map((musico: Musico) => (
+            {instrumental.map((musico: Musico, index: string) => (
               <SelectItem
-                key={musico.id}
+                key={index}
                 value={musico.id.toString()}
                 disabled={selectedInstrumentals.some((p) => p.id === musico.id)}
               >
@@ -275,9 +284,9 @@ const EscalasPage = () => {
             {selectedInstrumentals.length === 0 ? (
               <p className="text-sm text-gray-500">Ninguém selecionado</p>
             ) : (
-              selectedInstrumentals.map((musico) => (
+              selectedInstrumentals.map((musico, index) => (
                 <div
-                  key={musico.id}
+                  key={index}
                   className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                 >
                   <div>
@@ -315,9 +324,9 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione uma música" />
           </SelectTrigger>
           <SelectContent>
-            {musicas.map((musica: Musica) => (
+            {musicas.map((musica: Musica, index) => (
               <SelectItem
-                key={musica.id}
+                key={index}
                 value={musica.id.toString()}
                 disabled={selectedMusicasManha.some((p) => p.id === musica.id)}
               >
@@ -335,9 +344,9 @@ const EscalasPage = () => {
                 Nenhuma música selecionada
               </p>
             ) : (
-              selectedMusicasManha.map((musica) => (
+              selectedMusicasManha.map((musica, index) => (
                 <div
-                  key={musica.id}
+                  key={index}
                   className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                 >
                   <div>
@@ -375,9 +384,9 @@ const EscalasPage = () => {
             <SelectValue placeholder="Selecione uma música" />
           </SelectTrigger>
           <SelectContent>
-            {musicas.map((musica) => (
+            {musicas.map((musica, index) => (
               <SelectItem
-                key={musica.id}
+                key={index}
                 value={musica.id.toString()}
                 disabled={selectedMusicasNoite.some((p) => p.id === musica.id)}
               >
@@ -395,9 +404,9 @@ const EscalasPage = () => {
                 Nenhuma música selecionada
               </p>
             ) : (
-              selectedMusicasNoite.map((musica) => (
+              selectedMusicasNoite.map((musica, index) => (
                 <div
-                  key={musica.id}
+                  key={index}
                   className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
                 >
                   <div>
@@ -437,11 +446,6 @@ const EscalasPage = () => {
 
     if (selectedInstrumentals.length < 3 && currentStep == 3) {
       setErrorMessage("Selecione pelo menos 3 pessoas para o instrumental");
-      return;
-    }
-
-    if (selectedMusicasManha.length < 3 && currentStep == 4) {
-      setErrorMessage("Selecione pelo menos 3 músicas");
       return;
     }
 
@@ -534,10 +538,13 @@ const EscalasPage = () => {
 
   return (
     <>
+      <PageHead title="Escalas | App" />
       <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
-        <p className="text-muted-foreground  text-xl mb-2">
-          Lista de escalas agendadas
-        </p>
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Escalas de {currentMonth}
+          </h2>
+        </div>
 
         <div className="flex justify-end">
           <Button onClick={() => openDialog(false)} disabled={isLoading}>
@@ -567,7 +574,7 @@ const EscalasPage = () => {
                 <EscalaCard
                   key={escala.id}
                   escala={escala}
-                  isLoading={isLoading || isLoadingMutation}
+                  loading={isLoadingMutation}
                   editEscala={editEscala}
                   deleteEscala={deleteEscala}
                 />
