@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { usePathname } from "@/routes/hooks";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 interface DashboardNavProps {
   items: NavItem[];
@@ -26,6 +27,7 @@ export default function DashboardNav({
 }: DashboardNavProps) {
   const path = usePathname();
   const { isMinimized } = useSidebar();
+  const {logout} = useAuth();
 
   if (!items?.length) {
     return null;
@@ -50,6 +52,7 @@ export default function DashboardNav({
                       item.disabled && "cursor-not-allowed opacity-80"
                     )}
                     onClick={() => {
+                      if(item.label === "Sair") logout();
                       if (setOpen) setOpen(false);
                     }}
                   >
