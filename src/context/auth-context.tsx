@@ -46,6 +46,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
   };
 
+  const signup = (username: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    const { url, body } = CREATE_USUARIO({ username, password });
+    axios
+      .post(url, body)
+      .then((response) => {
+        const userData = response.data;
+        setUser(userData);
+
+        router.push("/login");
+      })
+      .catch((error) => {
+        const errorData = error.response.data.errors[0];
+        setError(errorData);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
   const logout = () => {
     try {
       setIsLoading(true);
@@ -60,29 +82,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const signup = (username: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { url, body } = CREATE_USUARIO({ username, password });
-    axios
-      .post(url, body)
-      .then((response) => {
-        const userData = response.data;
-        setUser(userData);
-
-        localStorage.setItem("authToken", userData.token);
-
-        router.push("/");
-      })
-      .catch((error) => {
-        setError(error.message);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
   };
 
   useEffect(() => {

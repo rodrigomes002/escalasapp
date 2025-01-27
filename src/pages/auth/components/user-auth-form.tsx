@@ -1,3 +1,4 @@
+import { Error } from "@/components/shared/error";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,8 +23,8 @@ const formSchema = z.object({
 
 type UserFormValue = z.infer<typeof formSchema>;
 
-export default function UserAuthForm() {
-  const { login, isLoading } = useAuth();
+export default function UserAuthForm({ isLogin }: { isLogin: boolean }) {
+  const { login, signup, isLoading, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<UserFormValue>({
@@ -31,6 +32,11 @@ export default function UserAuthForm() {
   });
 
   const onSubmit = async (data: UserFormValue) => {
+    if (!isLogin) {
+      signup(data.username, data.password);
+      return;
+    }
+
     login(data.username, data.password);
   };
 
@@ -60,7 +66,6 @@ export default function UserAuthForm() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="password"
@@ -97,6 +102,8 @@ export default function UserAuthForm() {
             )}
           />
 
+          {error && <Error message={error} />}
+
           <Button
             disabled={isLoading}
             className="ml-auto w-full h-12"
@@ -105,10 +112,10 @@ export default function UserAuthForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Entrando...
+                {isLogin ? "Entrando..." : "Cadastrando..."}
               </>
             ) : (
-              "Entrar"
+              <>{isLogin ? "Entrar" : "Cadastrar"}</>
             )}
           </Button>
         </form>
