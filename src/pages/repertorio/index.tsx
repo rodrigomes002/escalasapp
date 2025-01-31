@@ -22,6 +22,7 @@ import { useDeleteMusica } from "@/hooks/use-delete-musica";
 import { EmptyResult } from "@/components/shared/empty-result";
 import { CellAction } from "../membros/components/cell-action";
 import PageHead from "@/components/shared/page-head";
+import SearchableSelect from "@/components/ui/searchable-select";
 
 const RepertorioPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -214,10 +215,7 @@ const RepertorioPage = () => {
               <form onSubmit={handleSubmit}>
                 <div className="grid gap-4 py-4">
                   {["nome", "cantor", "tom"].map((field) => (
-                    <div
-                      className="grid grid-cols-4 items-center gap-4"
-                      key={field}
-                    >
+                    <div key={field}>
                       <Label htmlFor={field} className="text-right">
                         {field.charAt(0).toUpperCase() + field.slice(1)}
                       </Label>
