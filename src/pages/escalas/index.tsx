@@ -75,7 +75,7 @@ const EscalasPage = () => {
   const musicas = musicaData?.items || [];
   const musicos = (musicoData?.items as Musico[] | undefined) || [];
 
-  const musicasOptions =
+  const musicasOptions: any =
     musicas.map((m: Musica) => ({
       value: m.id,
       label: m.nome,

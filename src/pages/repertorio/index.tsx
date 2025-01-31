@@ -22,7 +22,6 @@ import { useDeleteMusica } from "@/hooks/use-delete-musica";
 import { EmptyResult } from "@/components/shared/empty-result";
 import { CellAction } from "../membros/components/cell-action";
 import PageHead from "@/components/shared/page-head";
-import SearchableSelect from "@/components/ui/searchable-select";
 
 const RepertorioPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
