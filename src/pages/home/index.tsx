@@ -1,5 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Music2, Plus } from "lucide-react";
+import { Loader2, Music2 } from "lucide-react";
 import { Escala } from "@/types/Escala";
 import { EscalaCard } from "@/pages/escalas/components/escala-card";
 import { useEscalas } from "@/hooks/use-escalas";
@@ -25,9 +25,9 @@ const Home = () => {
 
   const escalas = (escalaData as Escala[] | undefined) || [];
 
-  const editEscala = (escala: Escala) => {};
+  const editEscala = () => {};
 
-  const deleteEscala = (escala: Escala) => {};
+  const deleteEscala = () => {};
 
   return (
     <>
@@ -56,6 +56,7 @@ const Home = () => {
                 key={escala.id}
                 escala={escala}
                 loading={isLoadingMutation}
+                readonly={true}
                 editEscala={editEscala}
                 deleteEscala={deleteEscala}
               />

@@ -12,11 +12,13 @@ import { CellAction } from "@/pages/membros/components/cell-action";
 export const EscalaCard = ({
   escala,
   loading,
+  readonly,
   editEscala,
   deleteEscala,
 }: {
   escala: Escala;
   loading: boolean;
+  readonly: boolean;
   editEscala: (escala: Escala) => void;
   deleteEscala: (escala: Escala) => void;
 }) => {
@@ -31,12 +33,15 @@ export const EscalaCard = ({
       <CardHeader>
         <CardTitle className="text-2xl font-bold capitalize flex flex-row items-center justify-between space-y-0 pb-2">
           {formatarData(escala.data)}
-          <CellAction
-            item={escala}
-            loading={loading}
-            editItem={editEscala}
-            deleteItem={deleteEscala}
-          ></CellAction>
+
+          {!readonly && (
+            <CellAction
+              item={escala}
+              loading={loading}
+              editItem={editEscala}
+              deleteItem={deleteEscala}
+            ></CellAction>
+          )}
         </CardTitle>
 
         <CardDescription>Escala de Louvor</CardDescription>
