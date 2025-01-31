@@ -487,10 +487,8 @@ const EscalasPage = () => {
     <>
       <PageHead title="Escalas | App" />
       <div className="max-h-screen flex-1 space-y-4 p-4 pt-6 md:p-8">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Escalas de {currentMonth}
-          </h2>
+        <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
+          <h2 className="text-3xl font-bold tracking-tight">{currentMonth}</h2>
         </div>
 
         <div className="flex justify-end">
@@ -499,109 +497,107 @@ const EscalasPage = () => {
           </Button>
         </div>
 
-        <div className="flex items-center">
-          {/* Error Message */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{(error as Error).message}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-
-          {/* Musicians Grid */}
-          {!isLoading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-              {escalas.map((escala: Escala) => (
-                <EscalaCard
-                  key={escala.id}
-                  escala={escala}
-                  loading={isLoadingMutation}
-                  editEscala={editEscala}
-                  deleteEscala={deleteEscala}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!isLoading && !error && escalas.length === 0 && (
-            <div className="text-center py-12">
-              <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">
-                Nenhum música encontrado
-              </h3>
-              <p className="text-muted-foreground">
-                Tente ajustar seus filtros de busca
-              </p>
-            </div>
-          )}
-
-          <div>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {isUpdate ? "Edite a escala" : "Crie a Escala"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Selecione integrantes e músicas para montar uma escala
-                  </DialogDescription>
-                </DialogHeader>
-
-                {/* Step Content */}
-                {currentStep === 1 && (
-                  <DateStep formData={formData} handleDate={handleDate} />
-                )}
-                {currentStep === 2 && <VocalStep />}
-                {currentStep === 3 && <InstrumentalStep />}
-                {currentStep === 4 && <MorningSongsStep />}
-                {currentStep === 5 && <NightSongsStep />}
-
-                <div className="flex justify-center">
-                  {errorMessage && (
-                    <p className="text-red-500  mb-3">{errorMessage}</p>
-                  )}
-                  {errorMutation && (
-                    <p className="text-red-500 mt-3">
-                      {(errorMutation as Error).message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={currentStep === 1}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Anterior
-                  </Button>
-
-                  {currentStep < 5 ? (
-                    <Button onClick={nextStep}>
-                      Próximo
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button onClick={handleSubmit}>
-                      <Music2 className="h-4 w-4 mr-2" />
-                      Salvar
-                    </Button>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+        {/* Musicians Grid */}
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {escalas.map((escala: Escala) => (
+              <EscalaCard
+                key={escala.id}
+                escala={escala}
+                loading={isLoadingMutation}
+                editEscala={editEscala}
+                deleteEscala={deleteEscala}
+              />
+            ))}
           </div>
+        )}
+
+        <div>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {isUpdate ? "Edite a escala" : "Crie a Escala"}
+                </DialogTitle>
+                <DialogDescription>
+                  Selecione integrantes e músicas para montar uma escala
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Step Content */}
+              {currentStep === 1 && (
+                <DateStep formData={formData} handleDate={handleDate} />
+              )}
+              {currentStep === 2 && <VocalStep />}
+              {currentStep === 3 && <InstrumentalStep />}
+              {currentStep === 4 && <MorningSongsStep />}
+              {currentStep === 5 && <NightSongsStep />}
+
+              <div className="flex justify-center">
+                {errorMessage && (
+                  <p className="text-red-500  mb-3">{errorMessage}</p>
+                )}
+                {errorMutation && (
+                  <p className="text-red-500 mt-3">
+                    {(errorMutation as Error).message}
+                  </p>
+                )}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-6">
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  disabled={currentStep === 1}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Anterior
+                </Button>
+
+                {currentStep < 5 ? (
+                  <Button onClick={nextStep}>
+                    Próximo
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit}>
+                    <Music2 className="h-4 w-4 mr-2" />
+                    Salvar
+                  </Button>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{(error as Error).message}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && escalas.length === 0 && (
+        <div className="text-center py-12">
+          <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-semibold">
+            Nenhum música encontrado
+          </h3>
+          <p className="text-muted-foreground">
+            Tente ajustar seus filtros de busca
+          </p>
+        </div>
+      )}
     </>
   );
 };
