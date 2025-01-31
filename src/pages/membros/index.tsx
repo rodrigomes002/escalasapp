@@ -1,14 +1,5 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,6 +23,7 @@ import { EmptyResult } from "@/components/shared/empty-result";
 import { CellAction } from "./components/cell-action";
 import PageHead from "@/components/shared/page-head";
 import PaginationUI from "@/components/shared/pagination-ui";
+import SearchableSelect from "@/components/ui/searchable-select";
 
 const MembrosPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -131,6 +123,15 @@ const MembrosPage = () => {
     setNomeBusca(nome);
   };
 
+  const options = [
+    { value: "1", label: "Vocal" },
+    { value: "2", label: "Teclado" },
+    { value: "3", label: "Violao" },
+    { value: "4", label: "Guitarra" },
+    { value: "5", label: "Baixo" },
+    { value: "6", label: "Bateria" },
+  ];
+
   return (
     <>
       <PageHead title="Membros | App" />
@@ -229,7 +230,7 @@ const MembrosPage = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
+              <div>
                 <Label htmlFor="nome" className="text-right">
                   Nome
                 </Label>
@@ -246,36 +247,21 @@ const MembrosPage = () => {
                   }}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
+              <div>
                 <Label htmlFor="funcao" className="text-right">
                   Função
                 </Label>
-                <Select
-                  name="funcao"
+                <SearchableSelect
+                  options={options}
                   value={formData.funcao?.toString()}
-                  onValueChange={(valor) =>
+                  onChange={(valor) =>
                     setFormData({
                       ...formData,
                       funcao: Number(valor),
                     })
                   }
-                >
-                  <SelectTrigger className="col-span-2">
-                    <SelectValue placeholder="Selecione a função" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Funções</SelectLabel>
-                      {Object.entries(FuncaoEnum)
-                        .filter(([key]) => isNaN(Number(key))) // Filtra apenas as chaves string do enum
-                        .map(([key, value]) => (
-                          <SelectItem key={value} value={value.toString()}>
-                            {key}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                  placeholder="Selecione..."
+                />
               </div>
             </div>
             <div className="flex justify-center">

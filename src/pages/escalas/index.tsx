@@ -16,13 +16,6 @@ import { format } from "date-fns";
 import { Musica } from "@/types/Musica";
 import { Musico } from "@/types/Musico";
 import { FormEscala } from "@/types/FormEscala";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { FuncaoEnum } from "@/enums/funcao-enum";
 import { useEscalas } from "@/hooks/use-escalas";
 import { useCreateEscala } from "@/hooks/use-create-escala";
@@ -33,6 +26,7 @@ import { useMusicos } from "@/hooks/use-musicos";
 import PageHead from "@/components/shared/page-head";
 import { months } from "@/constants/data";
 import { DateStep } from "./components/date-step";
+import SearchableSelect from "@/components/ui/searchable-select";
 
 const EscalasPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -79,13 +73,29 @@ const EscalasPage = () => {
 
   const escalas = (escalaData as Escala[] | undefined) || [];
   const musicas = musicaData?.items || [];
+  const musicos = (musicoData?.items as Musico[] | undefined) || [];
+
+  const musicasOptions =
+    musicas.map((m: Musica) => ({
+      value: m.id,
+      label: m.nome,
+    })) || [];
 
   const vocal =
-    musicoData?.items.filter((m: Musico) => m.funcao === FuncaoEnum.Vocal) ||
-    [];
+    musicoData?.items
+      .filter((m: Musico) => m.funcao === FuncaoEnum.Vocal)
+      .map((m: Musico) => ({
+        value: m.id,
+        label: m.nome,
+      })) || [];
+
   const instrumental =
-    musicoData?.items.filter((m: Musico) => m.funcao !== FuncaoEnum.Vocal) ||
-    [];
+    musicoData?.items
+      .filter((m: Musico) => m.funcao !== FuncaoEnum.Vocal)
+      .map((m: Musico) => ({
+        value: m.id,
+        label: m.nome,
+      })) || [];
 
   const openDialog = (isUpdate: boolean) => {
     if (!isUpdate) reset();
@@ -185,25 +195,12 @@ const EscalasPage = () => {
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label>Vocal</Label>
-        <Select
+        <SearchableSelect
+          options={vocal}
           value={selectedVocal?.id.toString()}
-          onValueChange={handleSelectVocal}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-          <SelectContent>
-            {vocal.map((musico: Musico, index: string) => (
-              <SelectItem
-                key={index}
-                value={musico.id.toString()}
-                disabled={selectedVocals.some((p) => p.id === musico.id)}
-              >
-                {musico.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleSelectVocal}
+          placeholder="Selecione..."
+        />
 
         <div className="mt-4">
           <h3 className="text-lg font-medium mb-2">Vocal selecionado</h3>
@@ -225,7 +222,7 @@ const EscalasPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeVocal(musico.id.toString())}
+                    onClick={() => removeVocal(musico.nome)}
                     className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
@@ -243,25 +240,12 @@ const EscalasPage = () => {
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label>Instrumental</Label>
-        <Select
+        <SearchableSelect
+          options={instrumental}
           value={selectedInstrumental?.id.toString()}
-          onValueChange={handleSelectedInstrumental}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-          <SelectContent>
-            {instrumental.map((musico: Musico, index: string) => (
-              <SelectItem
-                key={index}
-                value={musico.id.toString()}
-                disabled={selectedInstrumentals.some((p) => p.id === musico.id)}
-              >
-                {musico.nome} - {getFuncaoNome(musico.funcao)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleSelectedInstrumental}
+          placeholder="Selecione..."
+        />
 
         <div className="mt-4">
           <h3 className="text-lg font-medium mb-2">Instrumental selecionado</h3>
@@ -283,7 +267,7 @@ const EscalasPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeInstrumental(musico.id.toString())}
+                    onClick={() => removeInstrumental(musico.nome)}
                     className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
@@ -301,25 +285,12 @@ const EscalasPage = () => {
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label>Músicas manhã</Label>
-        <Select
+        <SearchableSelect
+          options={musicasOptions}
           value={selectedMusicaManha?.id.toString()}
-          onValueChange={handleSelectMusicasManha}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione uma música" />
-          </SelectTrigger>
-          <SelectContent>
-            {musicas.map((musica: Musica, index) => (
-              <SelectItem
-                key={index}
-                value={musica.id.toString()}
-                disabled={selectedMusicasManha.some((p) => p.id === musica.id)}
-              >
-                {musica.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleSelectMusicasManha}
+          placeholder="Selecione..."
+        />
 
         <div className="mt-4">
           <h3 className="text-lg font-medium mb-2">Músicas selecionadas</h3>
@@ -343,7 +314,7 @@ const EscalasPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeMusicasManha(musica.id.toString())}
+                    onClick={() => removeMusicasManha(musica.nome)}
                     className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
@@ -361,25 +332,12 @@ const EscalasPage = () => {
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label>Músicas noite</Label>
-        <Select
+        <SearchableSelect
+          options={musicasOptions}
           value={selectedMusicaNoite?.id.toString()}
-          onValueChange={handleSelectMusicasNoite}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione uma música" />
-          </SelectTrigger>
-          <SelectContent>
-            {musicas.map((musica, index) => (
-              <SelectItem
-                key={index}
-                value={musica.id.toString()}
-                disabled={selectedMusicasNoite.some((p) => p.id === musica.id)}
-              >
-                {musica.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleSelectMusicasNoite}
+          placeholder="Selecione..."
+        />
 
         <div className="mt-4">
           <h3 className="text-lg font-medium mb-2">Músicas selecionadas</h3>
@@ -403,7 +361,7 @@ const EscalasPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeMusicasNoite(musica.id.toString())}
+                    onClick={() => removeMusicasNoite(musica.nome)}
                     className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
@@ -443,75 +401,79 @@ const EscalasPage = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  // Re-use existing handler functions
   const handleSelectVocal = (musicoId: string) => {
     setErrorMessage(null);
-    const musico = vocal.find((p: Musico) => p.id.toString() === musicoId);
-    if (musico && !selectedVocals.find((p) => p.id.toString() === musicoId)) {
-      setSelectedVocals([...selectedVocals, musico]);
-      setSelectedVocal(musico);
+    const musico = vocal.find((p: any) => p.value === Number(musicoId));
+    if (
+      musico &&
+      !selectedVocals.find((p: Musico) => p.id === Number(musicoId))
+    ) {
+      const musicoObj = {
+        id: musico.value,
+        nome: musico.label,
+        funcao: FuncaoEnum.Vocal,
+      };
+      setSelectedVocals([...selectedVocals, musicoObj]);
+      setSelectedVocal(musicoObj);
     }
   };
 
-  const removeVocal = (musicoId: string) => {
-    setSelectedVocals(
-      selectedVocals.filter((p) => p.id.toString() !== musicoId)
-    );
+  const removeVocal = (nome: string) => {
+    setSelectedVocals(selectedVocals.filter((p) => p.nome !== nome));
   };
 
   const handleSelectedInstrumental = (musicoId: string) => {
     setErrorMessage(null);
-    const musico = instrumental.find(
-      (p: Musico) => p.id.toString() === musicoId
-    );
+    const musico = musicos.find((p: any) => p.id === Number(musicoId));
     if (
       musico &&
-      !selectedInstrumentals.find((p) => p.id.toString() === musicoId)
+      !selectedInstrumentals.find((p) => p.id === Number(musicoId))
     ) {
       setSelectedInstrumentals([...selectedInstrumentals, musico]);
       setSelectedInstrumental(musico);
     }
   };
 
-  const removeInstrumental = (musicoId: string) => {
+  const removeInstrumental = (nome: string) => {
     setSelectedInstrumentals(
-      selectedInstrumentals.filter((p) => p.id.toString() !== musicoId)
+      selectedInstrumentals.filter((p) => p.nome !== nome)
     );
   };
 
   const handleSelectMusicasManha = (musicaId: string) => {
     setErrorMessage(null);
-    const musica = musicas.find((p) => p.id.toString() === musicaId);
+
+    const musica = musicas.find((p) => p.id === Number(musicaId));
     if (
       musica &&
-      !selectedMusicasManha.find((p) => p.id.toString() === musicaId)
+      !selectedMusicasManha.find((p) => p.id === Number(musicaId))
     ) {
       setSelectedMusicasManha([...selectedMusicasManha, musica]);
       setSelectedMusicaManha(musica);
     }
   };
 
-  const removeMusicasManha = (musicaId: string) => {
+  const removeMusicasManha = (nome: string) => {
     setSelectedMusicasManha(
-      selectedMusicasManha.filter((p) => p.id.toString() !== musicaId)
+      selectedMusicasManha.filter((p) => p.nome.toString() !== nome)
     );
   };
 
   const handleSelectMusicasNoite = (musicaId: string) => {
     setErrorMessage(null);
-    const musica = musicas.find((p) => p.id.toString() === musicaId);
+    const musica = musicas.find((p) => p.id === Number(musicaId));
     if (
       musica &&
-      !selectedMusicasNoite.find((p) => p.id.toString() === musicaId)
+      !selectedMusicasNoite.find((p) => p.id === Number(musicaId))
     ) {
       setSelectedMusicasNoite([...selectedMusicasNoite, musica]);
       setSelectedMusicaNoite(musica);
     }
   };
 
-  const removeMusicasNoite = (musicaId: string) => {
+  const removeMusicasNoite = (nome: string) => {
     setSelectedMusicasNoite(
-      selectedMusicasNoite.filter((p) => p.id.toString() !== musicaId)
+      selectedMusicasNoite.filter((p) => p.nome !== nome)
     );
   };
 
