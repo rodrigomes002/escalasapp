@@ -30,7 +30,7 @@ export const EscalaCard = ({
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold capitalize flex flex-row items-center justify-between space-y-0 pb-2">
-          Dia - {formatarData(escala.data)}
+          {formatarData(escala.data)}
           <CellAction
             item={escala}
             loading={loading}
