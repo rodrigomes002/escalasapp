@@ -504,6 +504,7 @@ const EscalasPage = () => {
               <EscalaCard
                 key={escala.id}
                 escala={escala}
+                readonly={false}
                 loading={isLoadingMutation}
                 editEscala={editEscala}
                 deleteEscala={deleteEscala}
