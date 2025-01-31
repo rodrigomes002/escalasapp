@@ -11,11 +11,12 @@ const DashboardLayout = lazy(
 );
 const SignInPage = lazy(() => import("@/pages/auth/signin"));
 const SignUpPage = lazy(() => import("@/pages/auth/signup"));
+const Home = lazy(() => import("@/pages/home"));
 
 export default function AppRouter() {
   const dashboardRoutes = [
     {
-      path: "/",
+      path: "escalas",
       element: (
         <DashboardLayout>
           <Suspense>
@@ -54,14 +55,17 @@ export default function AppRouter() {
 
   const publicRoutes = [
     {
+      path: "/",
+      element: <Home />,
+      index: true,
+    },
+    {
       path: "/login",
       element: <SignInPage />,
-      index: true,
     },
     {
       path: "/cadastrar",
       element: <SignUpPage />,
-      index: true,
     },
     {
       path: "/404",

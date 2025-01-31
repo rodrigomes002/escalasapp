@@ -590,9 +590,7 @@ const EscalasPage = () => {
       {!isLoading && !error && escalas.length === 0 && (
         <div className="text-center py-12">
           <Music2 className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">
-            Nenhum música encontrado
-          </h3>
+          <h3 className="mt-4 text-lg font-semibold">Nenhum data encontrada</h3>
           <p className="text-muted-foreground">
             Tente ajustar seus filtros de busca
           </p>

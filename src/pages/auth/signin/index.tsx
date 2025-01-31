@@ -32,15 +32,21 @@ export default function SignInPage() {
           </div>
           <UserAuthForm isLogin={true} />
           <p className="px-8 text-center text-sm text-muted-foreground">
-            Não possui conta? {' '}
-            <Link
+            Não possui conta?{" "}
+            {/* <Link
               to="/cadastrar"
-              className="underline underline-offset-4 hover:text-primary"             
+              className="underline underline-offset-4 hover:text-primary"
             >
-               Cadastre-se
+              Cadastre-se
+            </Link> */}
+            <Link
+              to="/"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Escalas
             </Link>
           </p>
-        </div>        
+        </div>
       </div>
     </div>
   );
