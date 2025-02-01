@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return;
           }
 
-          router.push("/escalas");
+          router.push("/");
           setIsAuthenticated(true);
         })
         .catch((error) => {

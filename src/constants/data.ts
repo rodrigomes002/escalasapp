@@ -19,7 +19,7 @@ export const navItems: NavItem[] = [
     icon: "music",
     label: "Repertório",
   },
-   {
+  {
     title: "Sair",
     href: "/login",
     icon: "logout",

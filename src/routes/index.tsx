@@ -16,7 +16,7 @@ const Home = lazy(() => import("@/pages/home"));
 export default function AppRouter() {
   const dashboardRoutes = [
     {
-      path: "escalas",
+      path: "/",
       element: (
         <DashboardLayout>
           <Suspense>
@@ -34,7 +34,7 @@ export default function AppRouter() {
           index: true,
         },
         {
-          path: "membros",
+          path: "/membros",
           element: (
             <ProtectedRoute>
               <MembrosPage />
@@ -42,7 +42,7 @@ export default function AppRouter() {
           ),
         },
         {
-          path: "repertorio",
+          path: "/repertorio",
           element: (
             <ProtectedRoute>
               <RepertorioPage />
@@ -55,7 +55,7 @@ export default function AppRouter() {
 
   const publicRoutes = [
     {
-      path: "/",
+      path: "/home",
       element: <Home />,
       index: true,
     },
