@@ -1,7 +1,7 @@
 import { navItems } from "@/constants/data";
 import { usePathname } from "@/routes/hooks";
 import Heading from "./heading";
-import { ModeToggle } from "./theme-toggle";
+// import { ModeToggle } from "./theme-toggle";
 
 // Custom hook to find the matched path
 const useMatchedPath = (pathname: string) => {
