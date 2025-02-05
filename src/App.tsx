@@ -1,12 +1,7 @@
-import AppProvider from "./providers";
-import AppRouter from "./routes";
+import Button from "@mui/material/Button";
 
 const App = () => {
-  return (
-    <AppProvider>
-      <AppRouter />
-    </AppProvider>
-  );
+  return <Button variant="contained">Hello world</Button>;
 };
 
 export default App;
