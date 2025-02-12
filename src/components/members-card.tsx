@@ -42,17 +42,15 @@ export default function MembersCard({
           <Divider orientation="vertical" flexItem />
           <Grid2 size={6}>
             <ListItem>{horario}</ListItem>
-            <ListItem>
-              {usuario ? (
-                usuario
-              ) : (
-                <Button onClick={marcarEscala}>Entrar na escala</Button>
-              )}
-            </ListItem>
+            <ListItem>{usuario ? usuario : "-"}</ListItem>
           </Grid2>
         </Grid2>
       </CardContent>
-      <CardActions></CardActions>
+      <CardActions>
+        <Button onClick={marcarEscala} disabled={usuario ? true : false}>
+          Entrar na escala
+        </Button>
+      </CardActions>
     </Card>
   );
 }
