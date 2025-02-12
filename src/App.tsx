@@ -1,7 +1,7 @@
-import Button from "@mui/material/Button";
+import DashboardLayoutBasic from "./components/DashboardLayoutBasic";
 
 const App = () => {
-  return <Button variant="contained">Hello world</Button>;
+  return <DashboardLayoutBasic></DashboardLayoutBasic>;
 };
 
 export default App;
