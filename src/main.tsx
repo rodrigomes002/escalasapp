@@ -3,8 +3,8 @@ import * as ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import App from "./App";
 import Layout from "./layouts/dashboard";
-import EscalasPage from "./pages";
-import MembersPage from "./pages/members";
+import EscalasPage from "./pages/escalas-page";
+import MembersPage from "./pages/members-page";
 
 const router = createBrowserRouter([
   {

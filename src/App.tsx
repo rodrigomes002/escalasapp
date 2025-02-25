@@ -1,27 +1,34 @@
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Outlet } from "react-router";
 import { ReactRouterAppProvider } from "@toolpad/core/react-router";
 import type { Navigation } from "@toolpad/core/AppProvider";
+import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
+import GroupIcon from "@mui/icons-material/Group";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const NAVIGATION: Navigation = [
   {
     kind: "header",
-    title: "Main items",
+    title: "Principal",
   },
   {
     title: "Escalas",
-    icon: <DashboardIcon />,
+    icon: <CalendarMonthIcon />,
   },
   {
     segment: "members",
     title: "Membros",
-    icon: <ShoppingCartIcon />,
+    icon: <GroupIcon />,
+  },
+  {
+    segment: "repertorio",
+    title: "Repertório",
+    icon: <LibraryMusicIcon />,
   },
 ];
 
 const BRANDING = {
-  title: "PIB SUM",
+  // logo: <img src="https://mui.com/static/logo.png" alt="Escalas logo" />,
+  title: "Escalas",
 };
 
 export default function App() {

@@ -1,8 +1,8 @@
 import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { Divider, Grid2, ListItem } from "@mui/material";
 import { useState } from "react";
 
@@ -12,16 +12,27 @@ interface CardProperts {
   horario: string;
 }
 
+interface Escala {
+  data: Date;
+  instrumental: [];
+  vocal: [];
+}
+
 export default function MembersCard({
   dia,
   diaDaSemana,
   horario,
 }: CardProperts) {
   const [usuario, setUsuario] = useState<string>();
+  const [escala, setEscala] = useState<Escala>();
 
-  function marcarEscala() {
-    setUsuario("Rodrigo");
+  function marcarEscala(funcao: string) {
+    //todo: faz request pra base
+    //ex: Guitarra, Rodrigo
   }
+
+  const instrumental = ["Guitarra", "Baixo", "Teclado", "Bateria"];
+  const vocal = ["Soprano", "Contralto", "Base", "Base"];
 
   return (
     <Card sx={{ minWidth: 275, mb: 4 }}>
@@ -40,17 +51,49 @@ export default function MembersCard({
             </ListItem>
           </Grid2>
           <Divider orientation="vertical" flexItem />
-          <Grid2 size={6}>
+          <Grid2 size={9}>
             <ListItem>{horario}</ListItem>
-            <ListItem>{usuario ? usuario : "-"}</ListItem>
+
+            <Grid2 container>
+              <Grid2 size={6}>
+                {instrumental.map((i) => (
+                  <ListItem>
+                    {i}:{" "}
+                    {usuario ? (
+                      usuario
+                    ) : (
+                      <Button
+                        onClick={() => marcarEscala(i)}
+                        disabled={usuario ? true : false}
+                      >
+                        <AddCircleOutlineIcon />
+                      </Button>
+                    )}
+                  </ListItem>
+                ))}
+              </Grid2>
+
+              <Grid2 size={6}>
+                {vocal.map((i) => (
+                  <ListItem>
+                    {i}:{" "}
+                    {usuario ? (
+                      usuario
+                    ) : (
+                      <Button
+                        onClick={() => marcarEscala(i)}
+                        disabled={usuario ? true : false}
+                      >
+                        <AddCircleOutlineIcon />
+                      </Button>
+                    )}
+                  </ListItem>
+                ))}
+              </Grid2>
+            </Grid2>
           </Grid2>
         </Grid2>
       </CardContent>
-      <CardActions>
-        <Button onClick={marcarEscala} disabled={usuario ? true : false}>
-          Entrar na escala
-        </Button>
-      </CardActions>
     </Card>
   );
 }

@@ -63,7 +63,7 @@ export default function MembersDialog() {
 
   return (
     <React.Fragment>
-      <Button variant="outlined" onClick={handleClickOpen}>
+      <Button sx={{ mb: 2 }} variant="outlined" onClick={handleClickOpen}>
         Agendar escala
       </Button>
 
