@@ -11,7 +11,15 @@ import { months } from "@/constants/data";
 import { Link } from "react-router-dom";
 
 const Home = () => {
-  const currentMonth = months[new Date().getMonth()];
+  const currentDate = new Date();
+  const lastSunday = ultimoDomingoDoMes(currentDate);
+
+  const currentMonth =
+    months[
+      currentDate > lastSunday
+        ? ultimoDomingoDoMes(new Date()).getMonth() + 1 // add 1 mês
+        : ultimoDomingoDoMes(new Date()).getMonth()
+    ];
   const { data: escalaData, isLoading, error } = useEscalas();
 
   const createMutation = useCreateEscala();
@@ -22,6 +30,23 @@ const Home = () => {
     createMutation.isPending ||
     updateMutation.isPending ||
     deleteMutation.isPending;
+
+  function ultimoDomingoDoMes(data: Date) {
+    const primeiroDiaProximoMes: any = new Date(
+      data.getFullYear(),
+      data.getMonth() + 1,
+      1
+    );
+
+    const ultimoDiaMesAtual = new Date(primeiroDiaProximoMes - 1);
+
+    const diasParaDomingo = ultimoDiaMesAtual.getDay();
+    const diasParaSubtrair = diasParaDomingo === 0 ? 0 : diasParaDomingo;
+
+    ultimoDiaMesAtual.setDate(ultimoDiaMesAtual.getDate() - diasParaSubtrair);
+
+    return ultimoDiaMesAtual;
+  }
 
   const escalas = (escalaData as Escala[] | undefined) || [];
 
