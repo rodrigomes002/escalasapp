@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         router.push("/");
       })
       .catch((error) => {
-        setError(error.message);
+        setError(error.response.data.errors[0]);
       })
       .finally(() => {
         setIsLoading(false);
