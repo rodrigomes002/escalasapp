@@ -7,7 +7,9 @@ Este é um projeto criado com React para gerenciar a agenda de músicos do minis
 
  - Typescript
  - React
-
+ - Chadcn UI
+ - React Query
+   
 ## Autores
 
 - [@rodrigomes002](https://github.com/rodrigomes002)
